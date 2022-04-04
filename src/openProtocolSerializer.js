@@ -6,10 +6,10 @@
 
 import { debuglog } from 'util'
 import { Transform } from 'stream'
-import { defaultEncoder } from './constants.json'
+import codes from './constants/codes'
 import { padLeft } from './helpers.js'
 
-const encodingOP = defaultEncoder
+const encodingOP = codes.defaultEncoder
 const pad = padLeft
 
 const debug = debuglog('open-protocol')

@@ -11,7 +11,7 @@ import OpenProtocolParser from './openProtocolParser'
 import OpenProtocolSerializer from './openProtocolSerializer'
 import MIDParser from './MIDParser'
 import MIDSerializer from './MIDSerializer'
-import { ERROR_LINKLAYER } from './constants.json'
+import { ERROR_LINKLAYER } from './constants/codes/ERROR_LINKLAYER'
 
 const debug = debuglog('open-protocol')
 

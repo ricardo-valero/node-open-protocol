@@ -6,7 +6,7 @@
 
 import fs from 'fs'
 import path from 'path'
-import codes from './constants.json'
+import codes from './constants/codes'
 
 const encoding = codes.defaultEncoder
 

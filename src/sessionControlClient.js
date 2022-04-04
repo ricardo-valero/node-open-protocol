@@ -8,12 +8,12 @@ import { debuglog } from 'util'
 import EventEmitter from 'events'
 import LinkLayer from '../src/linkLayer.js'
 import { getMids, padLeft } from './helpers.js'
-import midGroupList from './midGroups.json'
-import midData from './midData.json'
-import { ERROR } from './constants.json'
-import midRequest from './midRequest.json'
-import midCommand from './midCommand.json'
-import midReply from './midReply.json'
+import midGroupList from './constants/midGroupList'
+import midData from './constants/midData'
+import { ERROR } from './constants/codes/ERROR'
+import midRequest from './constants/midRequest'
+import midCommand from './constants/midCommand'
+import midReply from './constants/midReply'
 
 const mids = getMids()
 

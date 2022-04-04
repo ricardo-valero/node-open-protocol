@@ -125,7 +125,7 @@
 
 import { processKey, processParser, serializerField, serializerKey } from '../helpers.js'
 
-const constantsMID = require('./MidConstants/MID0061.json')
+import { MID0061 } from './constants/MID0061'
 
 function parser(msg, opts, cb) {
   const buffer = msg.payload
@@ -204,10 +204,10 @@ function parser(msg, opts, cb) {
 
       if (status) {
         msg.payload._torqueStatus = msg.payload.torqueStatus
-        msg.payload.torqueStatus = constantsMID.status[msg.payload.torqueStatus.toString()]
+        msg.payload.torqueStatus = MID0061.status[msg.payload.torqueStatus.toString()]
 
         msg.payload._angleStatus = msg.payload.angleStatus
-        msg.payload.angleStatus = constantsMID.status[msg.payload.angleStatus.toString()]
+        msg.payload.angleStatus = MID0061.status[msg.payload.angleStatus.toString()]
 
         msg.payload.torque = (msg.payload.torque / 100)
 
@@ -280,10 +280,10 @@ function parser(msg, opts, cb) {
 
       if (status) {
         msg.payload._torqueValuesUnit = msg.payload.torqueValuesUnit
-        msg.payload.torqueValuesUnit = constantsMID.torqueValuesUnit[msg.payload.torqueValuesUnit.toString()]
+        msg.payload.torqueValuesUnit = MID0061.torqueValuesUnit[msg.payload.torqueValuesUnit.toString()]
 
         msg.payload._resultType = msg.payload.resultType
-        msg.payload.resultType = constantsMID.resultType[msg.payload.resultType.toString()]
+        msg.payload.resultType = MID0061.resultType[msg.payload.resultType.toString()]
       }
       break
     case 2:
@@ -388,31 +388,31 @@ function parser(msg, opts, cb) {
 
       if (status) {
         msg.payload._strategy = msg.payload.strategy
-        msg.payload.strategy = constantsMID.strategy[msg.payload.strategy.toString()]
+        msg.payload.strategy = MID0061.strategy[msg.payload.strategy.toString()]
 
         msg.payload._strategyOptions = msg.payload.strategyOptions
         msg.payload.strategyOptions = checkBitMap('strategyOptions', msg.payload.strategyOptions, 11)
 
         msg.payload._torqueStatus = msg.payload.torqueStatus
-        msg.payload.torqueStatus = constantsMID.status[msg.payload.torqueStatus.toString()]
+        msg.payload.torqueStatus = MID0061.status[msg.payload.torqueStatus.toString()]
 
         msg.payload._angleStatus = msg.payload.angleStatus
-        msg.payload.angleStatus = constantsMID.status[msg.payload.angleStatus.toString()]
+        msg.payload.angleStatus = MID0061.status[msg.payload.angleStatus.toString()]
 
         msg.payload._rundownAngleStatus = msg.payload.rundownAngleStatus
-        msg.payload.rundownAngleStatus = constantsMID.status[msg.payload.rundownAngleStatus.toString()]
+        msg.payload.rundownAngleStatus = MID0061.status[msg.payload.rundownAngleStatus.toString()]
 
         msg.payload._currentMonitoringStatus = msg.payload.currentMonitoringStatus
-        msg.payload.currentMonitoringStatus = constantsMID.status[msg.payload.currentMonitoringStatus.toString()]
+        msg.payload.currentMonitoringStatus = MID0061.status[msg.payload.currentMonitoringStatus.toString()]
 
         msg.payload._selftapStatus = msg.payload.selftapStatus
-        msg.payload.selftapStatus = constantsMID.status[msg.payload.selftapStatus.toString()]
+        msg.payload.selftapStatus = MID0061.status[msg.payload.selftapStatus.toString()]
 
         msg.payload._prevailTorqueMonitoringStatus = msg.payload.prevailTorqueMonitoringStatus
-        msg.payload.prevailTorqueMonitoringStatus = constantsMID.status[msg.payload.prevailTorqueMonitoringStatus.toString()]
+        msg.payload.prevailTorqueMonitoringStatus = MID0061.status[msg.payload.prevailTorqueMonitoringStatus.toString()]
 
         msg.payload._prevailTorqueCompensateStatus = msg.payload.prevailTorqueCompensateStatus
-        msg.payload.prevailTorqueCompensateStatus = constantsMID.status[msg.payload.prevailTorqueCompensateStatus.toString()]
+        msg.payload.prevailTorqueCompensateStatus = MID0061.status[msg.payload.prevailTorqueCompensateStatus.toString()]
 
         msg.payload._tighteningErrorStatus = msg.payload.tighteningErrorStatus
         msg.payload.tighteningErrorStatus = checkBitMap('tighteningErrorStatus', msg.payload.tighteningErrorStatus, 32)
@@ -503,10 +503,10 @@ function parser(msg, opts, cb) {
 
       if (status) {
         msg.payload._torqueStatus = msg.payload.torqueStatus
-        msg.payload.torqueStatus = constantsMID.status[msg.payload.torqueStatus.toString()]
+        msg.payload.torqueStatus = MID0061.status[msg.payload.torqueStatus.toString()]
 
         msg.payload._angleStatus = msg.payload.angleStatus
-        msg.payload.angleStatus = constantsMID.status[msg.payload.angleStatus.toString()]
+        msg.payload.angleStatus = MID0061.status[msg.payload.angleStatus.toString()]
 
         msg.payload.torqueMinLimit = (msg.payload.torqueMinLimit / 100)
 
@@ -925,7 +925,7 @@ function checkBitMap(type, number, length) {
 
   for (let i = 0; i < length; i++) {
     if (((1 << i) & number) > 0)
-      retorno[i] = constantsMID[type][i]
+      retorno[i] = MID0061[type][i]
     else
       retorno[i] = undefined
   }
@@ -980,7 +980,7 @@ function serializerOptions(type, data) {
   if (!isNaN(data))
     return data
 
-  return constantsMID[type][data]
+  return MID0061[type][data]
 }
 
 function revision() {

@@ -7,10 +7,10 @@
 import { debuglog } from 'util'
 import { Transform } from 'stream'
 import { getMids } from './helpers.js'
-import { defaultEncoder } from './constants.json'
+import codes from './constants/codes'
 
 const mids = getMids()
-const encodingOP = defaultEncoder
+const encodingOP = codes.defaultEncoder
 
 const debug = debuglog('open-protocol')
 

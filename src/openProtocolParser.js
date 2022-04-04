@@ -6,8 +6,9 @@
 
 import { debuglog } from 'util'
 import { Transform } from 'stream'
-import { ERROR_LINKLAYER, defaultEncoder } from './constants.json'
+import codes from './constants/codes'
 
+const { ERROR_LINKLAYER, defaultEncoder } = codes
 const encodingOP = defaultEncoder
 
 const debug = debuglog('open-protocol')
