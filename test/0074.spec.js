@@ -1,105 +1,92 @@
-//@ts-check
+// @ts-check
 /*
   Copyright: (c) 2018-2020, Smart-Tech Controle e Automação
   GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 */
 
 const {
-    expect
-} = require('chai');
+  expect,
+} = require('chai')
 
-const MID = require('../src/mid/0074.js');
+const MID = require('../src/mid/0074.js')
 
-describe("MID 0074", () => {
+describe('MID 0074', () => {
+  it('parser rev 1', (done) => {
+    const msg = {
+      mid: 74,
+      revision: 1,
+      payload: Buffer.from('E404'),
+    }
 
-    it("parser rev 1", (done) => {
-        
-        let msg = {
-            mid: 74,
-            revision: 1,
-            payload: Buffer.from("E404")
-        };
+    MID.parser(msg, {}, (err, data) => {
+      if (err)
+        console.log(err)
 
-        MID.parser(msg, {}, (err, data) => {
+      expect(data).to.be.deep.equal({
+        mid: 74,
+        revision: 1,
+        payload: {
+          errorCode: 'E404',
+        },
+      })
 
-            if(err){
-                console.log(err);
-            }
+      done()
+    })
+  })
 
-            expect(data).to.be.deep.equal({
-                mid: 74,
-                revision: 1,
-                payload: {
-                    errorCode: "E404"                    
-                }
-            });
+  it('serializer rev 1', (done) => {
+    const msg = {
+      mid: 74,
+      revision: 1,
+      payload: {
+        errorCode: 'E404',
+      },
+    }
 
-            done();
-        });
-    }); 
+    MID.serializer(msg, {}, (err, data) => {
+      if (err)
+        console.log(err)
 
-    it("serializer rev 1", (done) => {
-        
-        let msg = {
-            mid: 74,
-            revision: 1,
-            payload: {
-                errorCode: "E404"                    
-            }
-        };
+      expect(data).to.be.deep.equal({
+        mid: 74,
+        revision: 1,
+        payload: Buffer.from('E404'),
+      })
 
-        MID.serializer(msg, {}, (err, data) => {
+      done()
+    })
+  })
 
-            if(err){
-                console.log(err);
-            }
+  it('Should return error, parser with invalid revision', (done) => {
+    const msg = {
+      mid: 74,
+      revision: 12,
+      payload: Buffer.from(''),
+    }
 
-            expect(data).to.be.deep.equal({
-                mid: 74,
-                revision: 1,
-                payload: Buffer.from("E404")
-            });
+    MID.parser(msg, {}, (err, data) => {
+      expect(err).to.be.an('error')
+      done()
+    })
+  })
 
-            done();
-        });
-    }); 
+  it('Should return error, serializer with invalid revision', (done) => {
+    const msg = {
+      mid: 74,
+      revision: 12,
+      payload: {},
+    }
 
-    it("Should return error, parser with invalid revision", (done) => {
+    MID.serializer(msg, {}, (err, data) => {
+      expect(err).to.be.an('error')
+      done()
+    })
+  })
 
-        let msg = {
-            mid: 74,
-            revision: 12,
-            payload: Buffer.from("")
-        };
+  it('Should return array revision', (done) => {
+    const revisions = MID.revision()
 
-        MID.parser(msg, {}, (err, data) => {
-            expect(err).to.be.an('error');
-            done();
-        });
-    });
-
-    it("Should return error, serializer with invalid revision", (done) => {
-
-        let msg = {
-            mid: 74,
-            revision: 12,
-            payload: {}
-        };
-
-        MID.serializer(msg, {}, (err, data) => {
-            expect(err).to.be.an('error');
-            done();
-        });
-    });
-
-    it("Should return array revision", (done) => {
-
-        let revisions = MID.revision();
-
-        expect(revisions).to.have.lengthOf(1);
-        done();
- 
-    });
-
-
-});
+    expect(revisions).to.have.lengthOf(1)
+    done()
+  })
+})

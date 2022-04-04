@@ -40,7 +40,7 @@
         "8": "DS control",
         "9": "Click Wrench",
         "10": "RBW Monitoring"
-    },    
+    },
     "tighteningErrorStatus": {
         "0": "Rundown angle max shut off",
         "1": "Rundown angle min shut off",

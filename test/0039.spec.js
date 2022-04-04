@@ -1,156 +1,138 @@
-//@ts-check
+// @ts-check
 /*
   Copyright: (c) 2018-2020, Smart-Tech Controle e Automação
   GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 */
 
 const {
-    expect
-} = require('chai');
+  expect,
+} = require('chai')
 
-const MID = require('../src/mid/0039.js');
+const MID = require('../src/mid/0039.js')
 
-describe("MID 0039", () => {
+describe('MID 0039', () => {
+  it('parser rev 1', (done) => {
+    const msg = {
+      mid: 39,
+      revision: 1,
+      payload: Buffer.from('99'),
+    }
 
-    it("parser rev 1", (done) => {
-        
-        let msg = {
-            mid: 39,
-            revision: 1,
-            payload: Buffer.from("99")
-        };
+    MID.parser(msg, {}, (err, data) => {
+      if (err)
+        console.log(err)
 
-        MID.parser(msg, {}, (err, data) => {
+      expect(data).to.be.deep.equal({
+        mid: 39,
+        revision: 1,
+        payload: {
+          jobID: 99,
+        },
+      })
 
-            if(err){
-                console.log(err);
-            }
+      done()
+    })
+  })
 
-            expect(data).to.be.deep.equal({
-                mid: 39,
-                revision: 1,
-                payload: {
-                    jobID: 99                    
-                }
-            });
+  it('parser rev 2', (done) => {
+    const msg = {
+      mid: 39,
+      revision: 2,
+      payload: Buffer.from('1212'),
+    }
 
-            done();
-        });
-    }); 
+    MID.parser(msg, {}, (err, data) => {
+      if (err)
+        console.log(err)
 
-    it("parser rev 2", (done) => {
-        
-        let msg = {
-            mid: 39,
-            revision: 2,
-            payload: Buffer.from("1212")
-        };
+      expect(data).to.be.deep.equal({
+        mid: 39,
+        revision: 2,
+        payload: {
+          jobID: 1212,
+        },
+      })
 
-        MID.parser(msg, {}, (err, data) => {
+      done()
+    })
+  })
 
-            if(err){
-                console.log(err);
-            }
+  it('serializer rev 1', (done) => {
+    const msg = {
+      mid: 39,
+      revision: 1,
+      payload: {
+        jobID: 99,
+      },
+    }
 
-            expect(data).to.be.deep.equal({
-                mid: 39,
-                revision: 2,
-                payload: {
-                    jobID: 1212                    
-                }
-            });
+    MID.serializer(msg, {}, (err, data) => {
+      if (err)
+        console.log(err)
 
-            done();
-        });
-    }); 
-   
-    it("serializer rev 1", (done) => {
-        
-        let msg = {
-            mid: 39,
-            revision: 1,
-            payload: {
-                jobID: 99
-            }
-        };
+      expect(data).to.be.deep.equal({
+        mid: 39,
+        revision: 1,
+        payload: Buffer.from('99'),
+      })
 
-        MID.serializer(msg, {}, (err, data) => {
+      done()
+    })
+  })
 
-            if(err){
-                console.log(err);
-            }
+  it('serializer rev 2', (done) => {
+    const msg = {
+      mid: 39,
+      revision: 2,
+      payload: {
+        jobID: 1212,
+      },
+    }
 
-            expect(data).to.be.deep.equal({
-                mid: 39,
-                revision: 1,
-                payload: Buffer.from("99")
-            });
+    MID.serializer(msg, {}, (err, data) => {
+      if (err)
+        console.log(err)
 
-            done();
-        });
-    }); 
+      expect(data).to.be.deep.equal({
+        mid: 39,
+        revision: 2,
+        payload: Buffer.from('1212'),
+      })
 
-    it("serializer rev 2", (done) => {
-        
-        let msg = {
-            mid: 39,
-            revision: 2,
-            payload: {
-                jobID: 1212
-            }
-        };
+      done()
+    })
+  })
 
-        MID.serializer(msg, {}, (err, data) => {
+  it('Should return error, parser with invalid revision', (done) => {
+    const msg = {
+      mid: 39,
+      revision: 12,
+      payload: Buffer.from(''),
+    }
 
-            if(err){
-                console.log(err);
-            }
+    MID.parser(msg, {}, (err, data) => {
+      expect(err).to.be.an('error')
+      done()
+    })
+  })
 
-            expect(data).to.be.deep.equal({
-                mid: 39,
-                revision: 2,
-                payload: Buffer.from("1212")
-            });
+  it('Should return error, serializer with invalid revision', (done) => {
+    const msg = {
+      mid: 39,
+      revision: 12,
+      payload: {},
+    }
 
-            done();
-        });
-    }); 
+    MID.serializer(msg, {}, (err, data) => {
+      expect(err).to.be.an('error')
+      done()
+    })
+  })
 
-    it("Should return error, parser with invalid revision", (done) => {
+  it('Should return array revision', (done) => {
+    const revisions = MID.revision()
 
-        let msg = {
-            mid: 39,
-            revision: 12,
-            payload: Buffer.from("")
-        };
-
-        MID.parser(msg, {}, (err, data) => {
-            expect(err).to.be.an('error');
-            done();
-        });
-    });
-
-    it("Should return error, serializer with invalid revision", (done) => {
-
-        let msg = {
-            mid: 39,
-            revision: 12,
-            payload: {}
-        };
-
-        MID.serializer(msg, {}, (err, data) => {
-            expect(err).to.be.an('error');
-            done();
-        });
-    });
-
-    it("Should return array revision", (done) => {
-
-        let revisions = MID.revision();
-
-        expect(revisions).to.have.lengthOf(2);
-        done();
- 
-    });
-
-});
+    expect(revisions).to.have.lengthOf(2)
+    done()
+  })
+})

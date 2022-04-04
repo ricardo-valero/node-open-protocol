@@ -1,3 +1,13 @@
 {
-    "extends": "@antfu"
+    "plugins": [
+        "mocha"
+    ],
+    "extends": [
+        "plugin:mocha/recommended",
+        "@antfu"
+    ],
+    "rules": {
+        "no-console": "off",
+        "mocha/no-mocha-arrows": "off"
+    }
 }

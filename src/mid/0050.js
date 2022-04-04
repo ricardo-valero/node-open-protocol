@@ -1,4 +1,4 @@
-//@ts-check
+// @ts-check
 /*
   Copyright: (c) 2018-2020, Smart-Tech Controle e Automação
   GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -11,86 +11,81 @@
  * @param {string} MID0050.numberVIN
  */
 
-const helpers = require("../helpers.js");
-const processParser = helpers.processParser;
-const serializerField = helpers.serializerField;
+const helpers = require('../helpers.js')
+const processParser = helpers.processParser
+const serializerField = helpers.serializerField
 
 function parser(msg, opts, cb) {
+  const buffer = msg.payload
+  msg.payload = {}
 
-    let buffer = msg.payload;
-    msg.payload = {};
+  const position = {
+    value: 0,
+  }
 
-    let position = {
-        value: 0
-    };
+  msg.revision = msg.revision || 1
 
-    msg.revision = msg.revision || 1;
+  switch (msg.revision) {
+    case 1:
+      processParser(msg, buffer, 'numberVIN', 'rawString', 25, position, cb)
+                && cb(null, msg)
+      break
 
-    switch (msg.revision) {
-
-        case 1:
-            processParser(msg, buffer, "numberVIN", "rawString", 25, position, cb) &&
-                cb(null, msg);
-            break;
-
-        default:
-            cb(new Error(`[Parser MID${msg.mid}] invalid revision [${msg.revision}]`));
-            break;
-    }
+    default:
+      cb(new Error(`[Parser MID${msg.mid}] invalid revision [${msg.revision}]`))
+      break
+  }
 }
 
 function serializer(msg, opts, cb) {
+  let buf
+  let statusprocess = false
 
-    let buf;
-    let statusprocess = false;
+  const position = {
+    value: 0,
+  }
 
-    let position = {
-        value: 0
-    };
+  msg.revision = msg.revision || 1
 
-    msg.revision = msg.revision || 1;
+  switch (msg.revision) {
+    case 1:
 
-    switch (msg.revision) {
+      buf = Buffer.alloc(25)
 
-        case 1:
+      position.value = 25
 
-            buf = Buffer.alloc(25);
+      statusprocess = serializerField(msg, buf, 'numberVIN', 'rawString', 25, position, cb)
 
-            position.value = 25;
+      if (!statusprocess)
+        return
 
-            statusprocess = serializerField(msg, buf, "numberVIN", "rawString", 25, position, cb);
+      msg.payload = buf
 
-            if (!statusprocess) {
-                return;
-            }
+      cb(null, msg)
 
-            msg.payload = buf;
+      break
 
-            cb(null, msg);
-
-            break;
-
-        default:
-            cb(new Error(`[Serializer MID${msg.mid}] invalid revision [${msg.revision}]`));
-            break;
-    }
+    default:
+      cb(new Error(`[Serializer MID${msg.mid}] invalid revision [${msg.revision}]`))
+      break
+  }
 }
 
 function revision() {
-    return [1];
+  return [1]
 }
 
-let params = {
-    "1": [{
-        name: "numberVIN",
-        type: "string",
-        desc: "25 ASCII characters"
-    }]
-};
+const params = {
+  1: [{
+    name: 'numberVIN',
+    type: 'string',
+    desc: '25 ASCII characters',
+  }],
+}
 
 module.exports = {
-    params,
-    parser,
-    serializer,
-    revision
-};
+  params,
+  parser,
+  serializer,
+  revision,
+}

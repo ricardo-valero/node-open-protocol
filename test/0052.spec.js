@@ -1,163 +1,144 @@
-//@ts-check
+// @ts-check
 /*
   Copyright: (c) 2018-2020, Smart-Tech Controle e Automação
   GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 */
 
 const {
-    expect
-} = require('chai');
+  expect,
+} = require('chai')
 
-const MID = require('../src/mid/0052.js');
+const MID = require('../src/mid/0052.js')
 
-describe("MID 0052", () => {
+describe('MID 0052', () => {
+  it('parser rev 1', (done) => {
+    const msg = {
+      mid: 52,
+      revision: 1,
+      payload: Buffer.from('SDDFCVNJHGF5632DFREGHYTCV'),
+    }
 
-    it("parser rev 1", (done) => {
-        
-        let msg = {
-            mid: 52,
-            revision: 1,
-            payload: Buffer.from("SDDFCVNJHGF5632DFREGHYTCV")
-        };
+    MID.parser(msg, {}, (err, data) => {
+      if (err)
+        console.log(err)
 
-        MID.parser(msg, {}, (err, data) => {
+      expect(data).to.be.deep.equal({
+        mid: 52,
+        revision: 1,
+        payload: {
+          numberVIN: 'SDDFCVNJHGF5632DFREGHYTCV',
+        },
+      })
 
-            if(err){
-                console.log(err);
-            }
+      done()
+    })
+  })
 
-            expect(data).to.be.deep.equal({
-                mid: 52,
-                revision: 1,
-                payload: {
-                    numberVIN: "SDDFCVNJHGF5632DFREGHYTCV"
-                }
-            });
+  it('parser rev 2', (done) => {
+    const msg = {
+      mid: 52,
+      revision: 2,
+      payload: Buffer.from('01AAAAAAAAAAAAAAAAAAAAAAAAA02BBBBBBBBBBBBBBBBBBBBBBBBB03CCCCCCCCCCCCCCCCCCCCCCCCC04DDDDDDDDDDDDDDDDDDDDDDDDD'),
+    }
 
-            done();
-        });
-    }); 
+    MID.parser(msg, {}, (err, data) => {
+      if (err)
+        console.log(err)
 
-    it("parser rev 2", (done) => {
-        
-        let msg = {
-            mid: 52,
-            revision: 2,
-            payload: Buffer.from("01AAAAAAAAAAAAAAAAAAAAAAAAA02BBBBBBBBBBBBBBBBBBBBBBBBB03CCCCCCCCCCCCCCCCCCCCCCCCC04DDDDDDDDDDDDDDDDDDDDDDDDD")
-        };
+      expect(data).to.be.deep.equal({
+        mid: 52,
+        revision: 2,
+        payload: {
+          numberVIN: 'AAAAAAAAAAAAAAAAAAAAAAAAA',
+          identifierPart2: 'BBBBBBBBBBBBBBBBBBBBBBBBB',
+          identifierPart3: 'CCCCCCCCCCCCCCCCCCCCCCCCC',
+          identifierPart4: 'DDDDDDDDDDDDDDDDDDDDDDDDD',
+        },
+      })
 
-        MID.parser(msg, {}, (err, data) => {
+      done()
+    })
+  })
 
-            if(err){
-                console.log(err);
-            }
+  it('serializer rev 1', (done) => {
+    const msg = {
+      mid: 52,
+      revision: 1,
+      payload: {
+        numberVIN: 'SDDFCVNJHGF5632DFREGHYTCV',
+      },
+    }
 
-            expect(data).to.be.deep.equal({
-                mid: 52,
-                revision: 2,
-                payload: {
-                    numberVIN: "AAAAAAAAAAAAAAAAAAAAAAAAA",
-                    identifierPart2: "BBBBBBBBBBBBBBBBBBBBBBBBB",
-                    identifierPart3: "CCCCCCCCCCCCCCCCCCCCCCCCC",
-                    identifierPart4: "DDDDDDDDDDDDDDDDDDDDDDDDD"
-                }
-            });
+    MID.serializer(msg, {}, (err, data) => {
+      if (err)
+        console.log(err)
 
-            done();
-        });
-    }); 
+      expect(data).to.be.deep.equal({
+        mid: 52,
+        revision: 1,
+        payload: Buffer.from('SDDFCVNJHGF5632DFREGHYTCV'),
+      })
 
-    it("serializer rev 1", (done) => {
-        
-        let msg = {
-            mid: 52,
-            revision: 1,
-            payload: {
-                numberVIN: "SDDFCVNJHGF5632DFREGHYTCV"
-            }       
-        };
+      done()
+    })
+  })
 
-        MID.serializer(msg, {}, (err, data) => {
+  it('serializer rev 2', (done) => {
+    const msg = {
+      mid: 52,
+      revision: 2,
+      payload: {
+        numberVIN: 'WSDERF652HGF965REDS201498',
+        identifierPart2: 'WSDGRFDESVBOERDLGFD85EDFR',
+        identifierPart3: 'QASWERFVBGT 98756412EDCGH',
+        identifierPart4: 'KJHNHY 985641WSXCFTHNMKOY',
+      },
+    }
 
-            if(err){
-                console.log(err);
-            }
+    MID.serializer(msg, {}, (err, data) => {
+      if (err)
+        console.log(err)
 
-            expect(data).to.be.deep.equal({
-                mid: 52,
-                revision: 1,
-                payload: Buffer.from("SDDFCVNJHGF5632DFREGHYTCV")
-            });
+      expect(data).to.be.deep.equal({
+        mid: 52,
+        revision: 2,
+        payload: Buffer.from('01WSDERF652HGF965REDS20149802WSDGRFDESVBOERDLGFD85EDFR03QASWERFVBGT 98756412EDCGH04KJHNHY 985641WSXCFTHNMKOY'),
+      })
 
-            done();
-        });
-    }); 
+      done()
+    })
+  })
 
-    it("serializer rev 2", (done) => {
-        
-        let msg = {
-            mid: 52,
-            revision: 2,
-            payload: {
-                numberVIN: "WSDERF652HGF965REDS201498",
-                identifierPart2: "WSDGRFDESVBOERDLGFD85EDFR",
-                identifierPart3: "QASWERFVBGT 98756412EDCGH",
-                identifierPart4: "KJHNHY 985641WSXCFTHNMKOY"
-            }     
-        };
+  it('Should return error, parser with invalid revision', (done) => {
+    const msg = {
+      mid: 52,
+      revision: 12,
+      payload: Buffer.from(''),
+    }
 
-        MID.serializer(msg, {}, (err, data) => {
+    MID.parser(msg, {}, (err, data) => {
+      expect(err).to.be.an('error')
+      done()
+    })
+  })
 
-            if(err){
-                console.log(err);
-            }
+  it('Should return error, serializer with invalid revision', (done) => {
+    const msg = {
+      mid: 52,
+      revision: 12,
+      payload: {},
+    }
 
-            expect(data).to.be.deep.equal({
-                mid: 52,
-                revision: 2,
-                payload: Buffer.from("01WSDERF652HGF965REDS20149802WSDGRFDESVBOERDLGFD85EDFR03QASWERFVBGT 98756412EDCGH04KJHNHY 985641WSXCFTHNMKOY")
-            });
+    MID.serializer(msg, {}, (err, data) => {
+      expect(err).to.be.an('error')
+      done()
+    })
+  })
 
-            done();
-        });
-    }); 
+  it('Should return array revision', (done) => {
+    const revisions = MID.revision()
 
-    it("Should return error, parser with invalid revision", (done) => {
-
-        let msg = {
-            mid: 52,
-            revision: 12,
-            payload: Buffer.from("")
-        };
-
-        MID.parser(msg, {}, (err, data) => {
-            expect(err).to.be.an('error');
-            done();
-        });
-    });
-
-    it("Should return error, serializer with invalid revision", (done) => {
-
-        let msg = {
-            mid: 52,
-            revision: 12,
-            payload: {}
-        };
-
-        MID.serializer(msg, {}, (err, data) => {
-            expect(err).to.be.an('error');
-            done();
-        });
-    });
-
-    it("Should return array revision", (done) => {
-
-        let revisions = MID.revision();
-
-        expect(revisions).to.have.lengthOf(2);
-        done();
- 
-    });
-    
-
-});
+    expect(revisions).to.have.lengthOf(2)
+    done()
+  })
+})

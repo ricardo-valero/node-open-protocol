@@ -1,159 +1,142 @@
-//@ts-check
+// @ts-check
 /*
   Copyright: (c) 2018-2020, Smart-Tech Controle e Automação
   GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 */
 
 const {
-    expect
-} = require('chai');
+  expect,
+} = require('chai')
 
-const MID = require('../src/mid/0064.js');
+const MID = require('../src/mid/0064.js')
 
-describe("MID 0064", () => {
+describe('MID 0064', () => {
+  it('parser rev 1', (done) => {
+    const msg = {
+      mid: 64,
+      revision: 1,
+      payload: Buffer.from('1234567890'),
+    }
 
-    it("parser rev 1", (done) => {
+    MID.parser(msg, {}, (err, data) => {
+      if (err)
+        console.log(err)
 
-        let msg = {
-            mid: 64,
-            revision: 1,
-            payload: Buffer.from("1234567890")
-        };
+      expect(data).to.be.deep.equal({
+        mid: 64,
+        revision: 1,
+        payload: {
+          tighteningID: 1234567890,
+        },
+      })
 
-        MID.parser(msg, {}, (err, data) => {
+      done()
+    })
+  })
 
-            if (err) {
-                console.log(err);
-            }
+  it('parser rev [2, 3, 4, 5, 6, 7]', (done) => {
+    for (let x = 2; x <= 7; x++) {
+      const revision = x
 
-            expect(data).to.be.deep.equal({
-                mid: 64,
-                revision: 1,
-                payload: {
-                    tighteningID: 1234567890
-                }
-            });
+      const msg = {
+        mid: 64,
+        revision,
+        payload: Buffer.from('1234567890'),
+      }
 
-            done();
-        });
-    });
+      MID.parser(msg, {}, (err, data) => {
+        expect(err).to.be.null
+        expect(data).to.be.deep.equal({
+          mid: 64,
+          revision,
+          payload: {
+            tighteningID: 1234567890,
+          },
+        })
+      })
+    }
 
-    it("parser rev [2, 3, 4, 5, 6, 7]", (done) => {
+    done()
+  })
 
-        for (let x = 2; x <= 7; x++) {
+  it('serializer rev 1', (done) => {
+    const msg = {
+      mid: 64,
+      revision: 1,
+      payload: {
+        tighteningID: 1234567890,
+      },
+    }
 
-            let revision = x;
+    MID.serializer(msg, {}, (err, data) => {
+      if (err)
+        console.log(err)
 
-            let msg = {
-                mid: 64,
-                revision,
-                payload: Buffer.from("1234567890")
-            };
+      expect(data).to.be.deep.equal({
+        mid: 64,
+        revision: 1,
+        payload: Buffer.from('1234567890'),
+      })
 
-            MID.parser(msg, {}, (err, data) => {
-                expect(err).to.be.null;
-                expect(data).to.be.deep.equal({
-                    mid: 64,
-                    revision,
-                    payload: {
-                        tighteningID: 1234567890
-                    }
-                });
-            });
-        }
+      done()
+    })
+  })
 
-        done();
+  it('serializer rev [2, 3, 4, 5, 6, 7]', (done) => {
+    for (let x = 2; x <= 7; x++) {
+      const revision = x
 
-    });
+      const msg = {
+        mid: 64,
+        revision,
+        payload: {
+          tighteningID: 1234567890,
+        },
+      }
 
-    it("serializer rev 1", (done) => {
+      MID.serializer(msg, {}, (err, data) => {
+        expect(err).to.be.null
+        expect(data).to.be.deep.equal({
+          mid: 64,
+          revision,
+          payload: Buffer.from('1234567890'),
+        })
+      })
+    }
 
-        let msg = {
-            mid: 64,
-            revision: 1,
-            payload: {
-                tighteningID: 1234567890
-            }
-        };
+    done()
+  })
 
-        MID.serializer(msg, {}, (err, data) => {
+  it('Should return error, parser with invalid revision', (done) => {
+    const msg = {
+      mid: 64,
+      revision: 12,
+      payload: Buffer.from(''),
+    }
 
-            if (err) {
-                console.log(err);
-            }
+    MID.parser(msg, {}, (err, data) => {
+      expect(err).to.be.an('error')
+      done()
+    })
+  })
 
-            expect(data).to.be.deep.equal({
-                mid: 64,
-                revision: 1,
-                payload: Buffer.from("1234567890")
-            });
+  it('Should return error, serializer with invalid revision', (done) => {
+    const msg = {
+      mid: 64,
+      revision: 12,
+      payload: {},
+    }
 
-            done();
-        });
-    });
+    MID.serializer(msg, {}, (err, data) => {
+      expect(err).to.be.an('error')
+      done()
+    })
+  })
 
-    it("serializer rev [2, 3, 4, 5, 6, 7]", (done) => {
+  it('Should return array revision', (done) => {
+    const revisions = MID.revision()
 
-        for (let x = 2; x <= 7; x++) {
-
-            let revision = x;
-
-            let msg = {
-                mid: 64,
-                revision,
-                payload: {
-                    tighteningID: 1234567890
-                }
-            };
-
-            MID.serializer(msg, {}, (err, data) => {
-                expect(err).to.be.null;
-                expect(data).to.be.deep.equal({
-                    mid: 64,
-                    revision,
-                    payload: Buffer.from("1234567890")
-                });
-            });
-        }
-
-        done();
-
-    });
-
-    it("Should return error, parser with invalid revision", (done) => {
-
-        let msg = {
-            mid: 64,
-            revision: 12,
-            payload: Buffer.from("")
-        };
-
-        MID.parser(msg, {}, (err, data) => {
-            expect(err).to.be.an('error');
-            done();
-        });
-    });
-
-    it("Should return error, serializer with invalid revision", (done) => {
-
-        let msg = {
-            mid: 64,
-            revision: 12,
-            payload: {}
-        };
-
-        MID.serializer(msg, {}, (err, data) => {
-            expect(err).to.be.an('error');
-            done();
-        });
-    });
-
-    it("Should return array revision", (done) => {
-
-        let revisions = MID.revision();
-
-        expect(revisions).to.have.lengthOf(7);
-        done();
-
-    });
-});
+    expect(revisions).to.have.lengthOf(7)
+    done()
+  })
+})

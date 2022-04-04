@@ -1,74 +1,73 @@
-//@ts-check
+// @ts-check
 /*
   Copyright: (c) 2018-2020, Smart-Tech Controle e Automação
   GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 */
 
-const util = require('util');
+const util = require('util')
 
-const EventEmitter = require('events');
-const LinkLayer = require('../src/linkLayer.js');
-const helpers = require("./helpers.js");
-const midGroupList = require("./midGroups.json");
-const midData = require("./midData.json");
-const constants = require("./constants.json");
-const midRequest = require("./midRequest.json");
-const midCommand = require("./midCommand.json");
-const midReply = require("./midReply.json");
+const EventEmitter = require('events')
+const LinkLayer = require('../src/linkLayer.js')
+const helpers = require('./helpers.js')
+const midGroupList = require('./midGroups.json')
+const midData = require('./midData.json')
+const constants = require('./constants.json')
+const midRequest = require('./midRequest.json')
+const midCommand = require('./midCommand.json')
+const midReply = require('./midReply.json')
 
-const mids = helpers.getMids();
+const mids = helpers.getMids()
 
-var debug = util.debuglog('open-protocol');
+const debug = util.debuglog('open-protocol')
 
-const SUBSCRIBE = "subscribe";
-const COMMAND = "command";
-const REQUEST = "request";
-const MANUAL = "manual";
-const GENERIC = "generic";
+const SUBSCRIBE = 'subscribe'
+const COMMAND = 'command'
+const REQUEST = 'request'
+const MANUAL = 'manual'
+const GENERIC = 'generic'
 
-//Status Connect
-const CONN_NOT_CONNECT = 0;
-const CONN_CONNECTING = 1;
-const CONN_CONNECTED = 2;
+// Status Connect
+const CONN_NOT_CONNECT = 0
+const CONN_CONNECTING = 1
+const CONN_CONNECTED = 2
 
 function promisify(ref, method, mid, opts) {
-    return new Promise(function (resolve, reject) {
-        return ref[method](mid, opts, (err, data) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(data);
-            }
-        });
-    });
+  return new Promise((resolve, reject) => {
+    return ref[method](mid, opts, (err, data) => {
+      if (err)
+        reject(err)
+      else
+        resolve(data)
+    })
+  })
 }
 
 function maybePromisify(ref, method, mid, opts, cb) {
-    if (cb === undefined) {
-        if (typeof opts === "function") {
-            cb = opts;
-            opts = {};
-        } else {
-            return promisify(ref, method, mid, opts);
-        }
+  if (cb === undefined) {
+    if (typeof opts === 'function') {
+      cb = opts
+      opts = {}
     }
+    else {
+      return promisify(ref, method, mid, opts)
+    }
+  }
 
-    return ref[method](mid, opts, cb);
+  return ref[method](mid, opts, cb)
 }
 
 class SessionControlClient extends EventEmitter {
-
-    /**
+  /**
      * @event SessionControlClient#connect
      * @property {Object} data MID 0002 - Reply of the connection
      */
 
-    /**
+  /**
      * @event SessionControlClient#data
      * @property {Object} data All MID's received of the controller
      */
 
-    /**
+  /**
      * @event SessionControlClient#dataGroup
      * @property {Object} data data of subscribe
      *
@@ -90,17 +89,17 @@ class SessionControlClient extends EventEmitter {
      *
      */
 
-    /**
+  /**
      * @event SessionControlClient#error
      * @property {Error} err
      */
 
-    /**
+  /**
      * @event SessionControlClient#close
      * @property {Error} [err]
      */
 
-    /**
+  /**
      * @throws {error}
      * @param {*}       opts
      * @param {object}  [opts.defaultRevisions = {}]
@@ -155,175 +154,173 @@ class SessionControlClient extends EventEmitter {
      * });
      *
      */
-    constructor(opts) {
-        debug("new SessionControlClient");
+  constructor(opts) {
+    debug('new SessionControlClient')
 
-        super();
+    super()
 
-        opts = opts || {};
+    opts = opts || {}
 
-        if (opts.stream === undefined) {
-            debug("SessionControlClient constructor err_stream_undefined");
-            throw new Error("[Session Control Client] stream undefined");
-        }
-
-        this.defaultRevisions = opts.defaultRevisions || {};
-
-        //LinkLayer
-        //If true activate Link Layer
-        //If false not activate Link Layer
-        //If undefined autoNegotiation Link Layer
-        this.useLinkLayer = opts.linkLayerActivate;
-
-        //Generic Mode
-        this.useGenerics = opts.genericMode || false;
-
-        //Keep Alive
-        this.keepAlive = opts.keepAlive || 10000;
-
-        this.ll = new LinkLayer({
-            stream: opts.stream,
-            timeOut: opts.timeOut,
-            retryTimes: opts.retryTimes,
-            rawData: opts.rawData,
-            disableMidParsing: opts.disableMidParsing
-        });
-
-        this.ll.on("error", (err) => this._onErrorLinkLayer(err));
-
-        this.changeRevisionGeneric = false;
-        this.autoRevision = {};
-        this.midInProcess = undefined;
-        this.inOperation = false;
-        this.changeRevision = false;
-        this.midQueue = [];
-        this.statusConnection = CONN_NOT_CONNECT;
-        this.controllerData = null;
-
-        this.keepAliveTimer = undefined;
-        // this.receiverKeepAliveTimer = undefined;
-
-        this.onClose = false;
-
-        this.stream = opts.stream;
-
-        this.stream.on("error", (err) => {
-            debug("SessionControlClient stream_error", err);
-            this.emit("error", err);
-            this.close(err);
-        });
-
-        this.stream.on("close", () => {
-            debug("SessionControlClient stream_close");
-            this.close(new Error("Stream Close"));
-        });
+    if (opts.stream === undefined) {
+      debug('SessionControlClient constructor err_stream_undefined')
+      throw new Error('[Session Control Client] stream undefined')
     }
 
-    /**
+    this.defaultRevisions = opts.defaultRevisions || {}
+
+    // LinkLayer
+    // If true activate Link Layer
+    // If false not activate Link Layer
+    // If undefined autoNegotiation Link Layer
+    this.useLinkLayer = opts.linkLayerActivate
+
+    // Generic Mode
+    this.useGenerics = opts.genericMode || false
+
+    // Keep Alive
+    this.keepAlive = opts.keepAlive || 10000
+
+    this.ll = new LinkLayer({
+      stream: opts.stream,
+      timeOut: opts.timeOut,
+      retryTimes: opts.retryTimes,
+      rawData: opts.rawData,
+      disableMidParsing: opts.disableMidParsing,
+    })
+
+    this.ll.on('error', err => this._onErrorLinkLayer(err))
+
+    this.changeRevisionGeneric = false
+    this.autoRevision = {}
+    this.midInProcess = undefined
+    this.inOperation = false
+    this.changeRevision = false
+    this.midQueue = []
+    this.statusConnection = CONN_NOT_CONNECT
+    this.controllerData = null
+
+    this.keepAliveTimer = undefined
+    // this.receiverKeepAliveTimer = undefined;
+
+    this.onClose = false
+
+    this.stream = opts.stream
+
+    this.stream.on('error', (err) => {
+      debug('SessionControlClient stream_error', err)
+      this.emit('error', err)
+      this.close(err)
+    })
+
+    this.stream.on('close', () => {
+      debug('SessionControlClient stream_close')
+      this.close(new Error('Stream Close'))
+    })
+  }
+
+  /**
      * @description Check if the connection with the controller is active.
      * @return {Boolean}
      */
-    isConnected() {
-        return this.statusConnection === CONN_CONNECTED;
-    }
+  isConnected() {
+    return this.statusConnection === CONN_CONNECTED
+  }
 
-    /**
+  /**
      * @description Check if the connection uses LinkLayer
      * @return {Boolean}
      */
-    isLinkLayerActive() {
-        return !!this.useLinkLayer;
-    }
+  isLinkLayerActive() {
+    return !!this.useLinkLayer
+  }
 
-    /**
+  /**
      * @description This method makes a connection with the controller.
      * If add a callback function, it will add as listener of connect @event.
      *
      * @param {function} cb function of callback
      */
-    connect(cb) {
-        debug("SessionControlClient connect");
+  connect(cb) {
+    debug('SessionControlClient connect')
 
-        let midSend = {};
+    let midSend = {}
 
-        if (this.connected) {
-            if (typeof cb === 'function') {
-                return process.nextTick(cb, this.controllerData);
-            } else {
-                return new Promise(function (resolve) {
-                    resolve(this.controllerData);
-                });
-            }
+    if (this.connected) {
+      if (typeof cb === 'function') {
+        return process.nextTick(cb, this.controllerData)
+      }
+      else {
+        return new Promise(function(resolve) {
+          resolve(this.controllerData)
+        })
+      }
+    }
+
+    let revision = 0
+
+    const sendMidOne = () => {
+      debug('SessionControlClient sendMidOne')
+
+      if (this.defaultRevisions['1'] === undefined) {
+        if (this.autoRevision['1'] === undefined) {
+          revision = mids[2].revision()[0]
+
+          this.autoRevision['1'] = {
+            value: revision,
+            position: 0,
+          }
+        }
+        else {
+          revision = this.autoRevision['1'].value
+        }
+      }
+      else {
+        revision = this.defaultRevisions['1']
+      }
+
+      this.statusConnection = CONN_CONNECTING
+
+      midSend = {
+        mid: 1,
+        revision,
+      }
+
+      this.ll.write(midSend)
+    }
+
+    const receivedReply = (data) => {
+      debug('SessionControlClient receivedReply', data)
+
+      this.ll.finishCycle()
+
+      this.emit('data', data)
+
+      if (data.mid === 4) {
+        if (data.payload.midNumber !== 1) {
+          const e = new Error(`[Session Control Client] [Connect] invalid acknowledge, expect MID[1], received MID[${data.payload.midNumber}]`)
+          debug('SessionControlClient connect err_invalid_acknowledge', data)
+          this.emit('error', e)
+          return
         }
 
-        let revision = 0;
+        if (data.payload.errorCode === 97 && this.defaultRevisions['1'] === undefined) {
+          const newPosition = this.autoRevision['1'].position + 1
+          this.autoRevision['1'].value = mids[2].revision()[newPosition]
+          this.autoRevision['1'].position = newPosition
+          sendMidOne()
+        }
+        else {
+          const errorCode = helpers.padLeft(data.payload.errorCode, 2)
+          const e = new Error(`[Session Control Client] [Connect] negative acknowledge, MID[${data.payload.midNumber}], Error [${constants.ERROR[errorCode]}]`)
+          debug('SessionControlClient connect err_negative_acknowledge', data.payload.errorCode, this.defaultRevisions['1'])
+          this.emit('error', e)
+        }
 
-        let sendMidOne = () => {
-            debug("SessionControlClient sendMidOne");
+        return
+      }
 
-            if (this.defaultRevisions["1"] === undefined) {
-
-                if (this.autoRevision["1"] === undefined) {
-
-                    revision = mids[2].revision()[0];
-
-                    this.autoRevision["1"] = {
-                        value: revision,
-                        position: 0
-                    };
-
-                } else {
-                    revision = this.autoRevision["1"].value;
-                }
-
-            } else {
-                revision = this.defaultRevisions["1"];
-            }
-
-            this.statusConnection = CONN_CONNECTING;
-
-            midSend = {
-                mid: 1,
-                revision: revision
-            };
-
-            this.ll.write(midSend);
-        };
-
-        let receivedReply = (data) => {
-            debug("SessionControlClient receivedReply", data);
-
-            this.ll.finishCycle();
-
-            this.emit("data", data);
-
-            if (data.mid === 4) {
-
-                if (data.payload.midNumber !== 1) {
-                    let e = new Error(`[Session Control Client] [Connect] invalid acknowledge, expect MID[1], received MID[${data.payload.midNumber}]`);
-                    debug("SessionControlClient connect err_invalid_acknowledge", data);
-                    this.emit("error", e);
-                    return;
-                }
-
-                if (data.payload.errorCode === 97 && this.defaultRevisions["1"] === undefined) {
-                    let newPosition = this.autoRevision["1"].position + 1;
-                    this.autoRevision["1"].value = mids[2].revision()[newPosition];
-                    this.autoRevision["1"].position = newPosition;
-                    sendMidOne();
-                } else {
-                    let errorCode = helpers.padLeft(data.payload.errorCode, 2);
-                    let e = new Error(`[Session Control Client] [Connect] negative acknowledge, MID[${data.payload.midNumber}], Error [${constants.ERROR[errorCode]}]`);
-                    debug("SessionControlClient connect err_negative_acknowledge", data.payload.errorCode, this.defaultRevisions["1"]);
-                    this.emit("error", e);
-                }
-
-                return;
-            }
-
-            if (data.mid === 2) {
-
-                /*
+      if (data.mid === 2) {
+        /*
 
                 Disabling revisions check because our simulator always respond Revision == "00 "
 
@@ -343,109 +340,110 @@ class SessionControlClient extends EventEmitter {
                 }
                 */
 
-                this.ll.removeAllListeners();
+        this.ll.removeAllListeners()
 
-                this.statusConnection = CONN_CONNECTED;
-                this.controllerData = data;
+        this.statusConnection = CONN_CONNECTED
+        this.controllerData = data
 
-                this.ll.on("data", (data) => this._onDataLinkLayer(data));
-                this.ll.on("error", (err) => this._onErrorLinkLayer(err));
-                this.ll.on("errorSerializer", (err) => this._onErrorSerializer(err));
-                this.ll.on("errorParser", (err) => this._onErrorParser(err));
+        this.ll.on('data', data => this._onDataLinkLayer(data))
+        this.ll.on('error', err => this._onErrorLinkLayer(err))
+        this.ll.on('errorSerializer', err => this._onErrorSerializer(err))
+        this.ll.on('errorParser', err => this._onErrorParser(err))
 
-                process.nextTick(() => {
-                    this.emit("connect", data);
-                });
+        process.nextTick(() => {
+          this.emit('connect', data)
+        })
 
-                if (this.useLinkLayer === undefined) {
-                    if (data.payload.sequenceNumberSupport === 1) {
-                        this.ll.activateLinkLayer();
-                        this.useLinkLayer = true;
-                    } else {
-                        this.ll.deactivateLinkLayer();
-                        this.useLinkLayer = false;
-                    }
-
-                } else if (this.useLinkLayer) {
-                    if (data.payload.sequenceNumberSupport !== 1 || data.payload.linkingHandlingSupport !== 1) {
-                        this.emit("error", new Error("[Session Control Client] [Force Link Layer] controller does not support link layer"));
-                        debug("SessionControlClient connect err_controller_not_support_link_layer", this.useLinkLayer, data.payload.sequenceNumberSupport, data.payload.linkingHandlingSupport);
-                        return;
-                    }
-                    this.ll.activateLinkLayer();
-
-                } else {
-                    this.ll.deactivateLinkLayer();
-                }
-
-                clearTimeout(this.keepAliveTimer);
-                this.keepAliveTimer = setTimeout(() => this._sendKeepAlive(), this.keepAlive);
-
-                this.onClose = false;
-                this.inOperation = false;
-
-                this._sendingProcess();
-            }
-        };
-
-        sendMidOne();
-
-        this.ll.on("data", (data) => receivedReply(data));
-
-        if (typeof cb === 'function') {
-            return this.once('connect', cb);
-        } else {
-            return new Promise((resolve, reject) => {
-                this.once('connect', (data) => {
-                    resolve(data);
-                });
-                this.once('error', (err) => {
-                    reject(err);
-                });
-            });
+        if (this.useLinkLayer === undefined) {
+          if (data.payload.sequenceNumberSupport === 1) {
+            this.ll.activateLinkLayer()
+            this.useLinkLayer = true
+          }
+          else {
+            this.ll.deactivateLinkLayer()
+            this.useLinkLayer = false
+          }
         }
+        else if (this.useLinkLayer) {
+          if (data.payload.sequenceNumberSupport !== 1 || data.payload.linkingHandlingSupport !== 1) {
+            this.emit('error', new Error('[Session Control Client] [Force Link Layer] controller does not support link layer'))
+            debug('SessionControlClient connect err_controller_not_support_link_layer', this.useLinkLayer, data.payload.sequenceNumberSupport, data.payload.linkingHandlingSupport)
+            return
+          }
+          this.ll.activateLinkLayer()
+        }
+        else {
+          this.ll.deactivateLinkLayer()
+        }
+
+        clearTimeout(this.keepAliveTimer)
+        this.keepAliveTimer = setTimeout(() => this._sendKeepAlive(), this.keepAlive)
+
+        this.onClose = false
+        this.inOperation = false
+
+        this._sendingProcess()
+      }
     }
 
-    /**
+    sendMidOne()
+
+    this.ll.on('data', data => receivedReply(data))
+
+    if (typeof cb === 'function') {
+      return this.once('connect', cb)
+    }
+    else {
+      return new Promise((resolve, reject) => {
+        this.once('connect', (data) => {
+          resolve(data)
+        })
+        this.once('error', (err) => {
+          reject(err)
+        })
+      })
+    }
+  }
+
+  /**
      * @description This method destroys the connection and cleans all states of SessionControlClient.
      * @param {Error} [err]
      */
-    close(err) {
-        debug("SessionControlClient close", err);
+  close(err) {
+    debug('SessionControlClient close', err)
 
-        if (this.onClose) {
-            return;
-        }
+    if (this.onClose)
+      return
 
-        clearTimeout(this.keepAliveTimer);
+    clearTimeout(this.keepAliveTimer)
 
-        this.onClose = true;
-        this.statusConnection = CONN_NOT_CONNECT;
+    this.onClose = true
+    this.statusConnection = CONN_NOT_CONNECT
 
-        if (this.midQueue && this.midQueue.length > 0) {
-            let e = new Error("service unavailable");
-            this.midQueue.forEach(item => {
-                process.nextTick(() => item.doCallback(e));
-            });
-        }
-
-        this.midInProcess = null;
-        this.midQueue = [];
-
-        this.autoRevision = {};
-
-        // handles Node versions older than 8.x
-        if(typeof this.ll.destroy === 'function'){
-            this.ll.destroy();
-        } else {
-            this.ll._destroy();
-        }
-        this.stream.end();
-
-        this.emit("close", err);
+    if (this.midQueue && this.midQueue.length > 0) {
+      const e = new Error('service unavailable')
+      this.midQueue.forEach((item) => {
+        process.nextTick(() => item.doCallback(e))
+      })
     }
 
-    /**
+    this.midInProcess = null
+    this.midQueue = []
+
+    this.autoRevision = {}
+
+    // handles Node versions older than 8.x
+    if (typeof this.ll.destroy === 'function')
+      this.ll.destroy()
+    else
+      this.ll._destroy()
+
+    this.stream.end()
+
+    this.emit('close', err)
+  }
+
+  /**
      * @description This method makes generic call, here it is possible to send a not implemented MID.
      * If add only [midNumber] the message will have default a body and revision = 1, for additional body settings,
      * add the [opts] object. The [cb] function is called in case of an error, sending the error as parameter. The incoming
@@ -519,29 +517,29 @@ class SessionControlClient extends EventEmitter {
      * @param {Object} [opts]
      * @param {Function} [cb]
      */
-    sendMid(midNumber, opts, cb) {
-        return maybePromisify(this, "_sendMid", midNumber, opts, cb);
-    }
+  sendMid(midNumber, opts, cb) {
+    return maybePromisify(this, '_sendMid', midNumber, opts, cb)
+  }
 
-    /**
+  /**
      * @private
      * @param {*} midNumber
      * @param {*} opts
      * @param {*} cb
      */
-    _sendMid(midNumber, opts, cb) {
-        debug("SessionControlClient _sendMid", midNumber, opts);
+  _sendMid(midNumber, opts, cb) {
+    debug('SessionControlClient _sendMid', midNumber, opts)
 
-        let mid = opts || {};
-        mid.payload = mid.payload || "";
+    const mid = opts || {}
+    mid.payload = mid.payload || ''
 
-        mid.mid = midNumber;
+    mid.mid = midNumber
 
-        this.midQueue.push(new Message(mid, cb, MANUAL));
-        this._sendingProcess();
-    }
+    this.midQueue.push(new Message(mid, cb, MANUAL))
+    this._sendingProcess()
+  }
 
-    /**
+  /**
      * @description This method makes a request call, it uses [midGroup] as key for call.
      * If adding only [midGroup] the message will have a default body, for additional body settings,
      * add the [opts] object. The [cb] function is called in cases of an error, sending the error as
@@ -551,58 +549,57 @@ class SessionControlClient extends EventEmitter {
      * @param {Object} [opts]
      * @param {Function} [cb]
      */
-    request(midGroup, opts, cb) {
-        return maybePromisify(this, "_request", midGroup, opts, cb);
-    }
+  request(midGroup, opts, cb) {
+    return maybePromisify(this, '_request', midGroup, opts, cb)
+  }
 
-    /**
+  /**
      * @private
      * @param {*} midGroup
      * @param {*} opts
      * @param {*} cb
      */
-    _request(midGroup, opts, cb) {
-        debug("SessionControlClient _request", midGroup, opts);
+  _request(midGroup, opts, cb) {
+    debug('SessionControlClient _request', midGroup, opts)
 
-        if (midRequest[midGroup] === undefined) {
-            let err = new Error(`[Session Control Client] [Request] invalid midGroup [${midGroup}]`);
-            debug("SessionControlClient _request err_invalid_midGroup");
-            cb(err);
-            return;
-        }
-
-        let mid = opts || {};
-
-        let type = REQUEST;
-
-        if (this.useGenerics && midRequest[midGroup].generic) {
-
-            mid.mid = 6;
-            type = GENERIC;
-
-            let midNumber = midRequest[midGroup].request;
-            let revision = mid.revision || this._calcRevision(midNumber, REQUEST, midGroup, true);
-            let dataLength = mid.dataLength || 0;
-            let extraData = mid.extraData || "";
-
-            mid.payload = {
-                midNumber,
-                revision,
-                dataLength,
-                extraData
-            };
-
-        } else {
-            mid.payload = mid.payload || "";
-            mid.mid = midRequest[midGroup].request;
-        }
-
-        this.midQueue.push(new Message(mid, cb, type, midGroup));
-
-        this._sendingProcess();
+    if (midRequest[midGroup] === undefined) {
+      const err = new Error(`[Session Control Client] [Request] invalid midGroup [${midGroup}]`)
+      debug('SessionControlClient _request err_invalid_midGroup')
+      cb(err)
+      return
     }
 
-    /**
+    const mid = opts || {}
+
+    let type = REQUEST
+
+    if (this.useGenerics && midRequest[midGroup].generic) {
+      mid.mid = 6
+      type = GENERIC
+
+      const midNumber = midRequest[midGroup].request
+      const revision = mid.revision || this._calcRevision(midNumber, REQUEST, midGroup, true)
+      const dataLength = mid.dataLength || 0
+      const extraData = mid.extraData || ''
+
+      mid.payload = {
+        midNumber,
+        revision,
+        dataLength,
+        extraData,
+      }
+    }
+    else {
+      mid.payload = mid.payload || ''
+      mid.mid = midRequest[midGroup].request
+    }
+
+    this.midQueue.push(new Message(mid, cb, type, midGroup))
+
+    this._sendingProcess()
+  }
+
+  /**
      * @description This method makes a command call, it uses [midGroup] as key for call.
      * If adding only [midGroup] the message will have a default body, for additional body settings,
      * add the [opts] object. The [cb] function is called in case of an error, sending the error as
@@ -612,39 +609,38 @@ class SessionControlClient extends EventEmitter {
      * @param {Object} [opts]
      * @param {Function} [cb]
      */
-    command(midGroup, opts, cb) {
-        return maybePromisify(this, "_command", midGroup, opts, cb);
-    }
+  command(midGroup, opts, cb) {
+    return maybePromisify(this, '_command', midGroup, opts, cb)
+  }
 
-    /**
+  /**
      * @private
      * @param {*} midGroup
      * @param {*} opts
      * @param {*} cb
      */
-    _command(midGroup, opts, cb) {
-        debug("SessionControlClient _command", midGroup, opts);
+  _command(midGroup, opts, cb) {
+    debug('SessionControlClient _command', midGroup, opts)
 
-        if (midCommand[midGroup] === undefined) {
-            let err = new Error(`[Session Control Client] [Command] invalid midGroup [${midGroup}]`);
-            debug("SessionControlClient _command err_invalid_midGroup");
-            cb(err);
-            return;
-        }
-
-        let mid = opts || {};
-
-        let type = COMMAND;
-
-        mid.payload = mid.payload || "";
-        mid.mid = midCommand[midGroup].request;
-
-
-        this.midQueue.push(new Message(mid, cb, type, midGroup));
-        this._sendingProcess();
+    if (midCommand[midGroup] === undefined) {
+      const err = new Error(`[Session Control Client] [Command] invalid midGroup [${midGroup}]`)
+      debug('SessionControlClient _command err_invalid_midGroup')
+      cb(err)
+      return
     }
 
-    /**
+    const mid = opts || {}
+
+    const type = COMMAND
+
+    mid.payload = mid.payload || ''
+    mid.mid = midCommand[midGroup].request
+
+    this.midQueue.push(new Message(mid, cb, type, midGroup))
+    this._sendingProcess()
+  }
+
+  /**
      * @description This method makes a subscribe call, it uses [midGroup] as key for call.
      * If adding only [midGroup] the message will have a default body, for additional body settings,
      * add the [opts] object. The [cb] function is called in case of an error, sending the error as
@@ -668,57 +664,56 @@ class SessionControlClient extends EventEmitter {
      * @param {Object} [opts]
      * @param {Function} [cb]
      */
-    subscribe(midGroup, opts, cb) {
-        return maybePromisify(this, "_subscribe", midGroup, opts, cb);
-    }
+  subscribe(midGroup, opts, cb) {
+    return maybePromisify(this, '_subscribe', midGroup, opts, cb)
+  }
 
-    /**
+  /**
      * @private
      * @param {*} midGroup
      * @param {*} opts
      * @param {*} cb
      */
-    _subscribe(midGroup, opts, cb) {
-        debug("SessionControlClient _subscribe", midGroup, opts);
+  _subscribe(midGroup, opts, cb) {
+    debug('SessionControlClient _subscribe', midGroup, opts)
 
-        if (midGroupList[midGroup] === undefined) {
-            let err = new Error(`[Session Control Client] [Subscribe] invalid midGroup [${midGroup}]`);
-            debug("SessionControlClient _subscribe err_invalid_midGroup");
-            cb(err);
-            return;
-        }
-
-        let mid = opts || {};
-
-        let type = SUBSCRIBE;
-
-        if (this.useGenerics && midGroupList[midGroup].generic) {
-
-            mid.mid = 8;
-            type = GENERIC;
-
-            let midNumber = mid.midNumber || midGroupList[midGroup].subscribe;
-            let revision = mid.revision || this._calcRevision(midNumber, SUBSCRIBE, midGroup, true);
-            let dataLength = mid.dataLength || 0;
-            let extraData = mid.extraData || "";
-
-            mid.payload = {
-                midNumber,
-                revision,
-                dataLength,
-                extraData
-            };
-
-        } else {
-            mid.payload = mid.payload || "";
-            mid.mid = midGroupList[midGroup].subscribe;
-        }
-
-        this.midQueue.push(new Message(mid, cb, type, midGroup));
-        this._sendingProcess();
+    if (midGroupList[midGroup] === undefined) {
+      const err = new Error(`[Session Control Client] [Subscribe] invalid midGroup [${midGroup}]`)
+      debug('SessionControlClient _subscribe err_invalid_midGroup')
+      cb(err)
+      return
     }
 
-    /**
+    const mid = opts || {}
+
+    let type = SUBSCRIBE
+
+    if (this.useGenerics && midGroupList[midGroup].generic) {
+      mid.mid = 8
+      type = GENERIC
+
+      const midNumber = mid.midNumber || midGroupList[midGroup].subscribe
+      const revision = mid.revision || this._calcRevision(midNumber, SUBSCRIBE, midGroup, true)
+      const dataLength = mid.dataLength || 0
+      const extraData = mid.extraData || ''
+
+      mid.payload = {
+        midNumber,
+        revision,
+        dataLength,
+        extraData,
+      }
+    }
+    else {
+      mid.payload = mid.payload || ''
+      mid.mid = midGroupList[midGroup].subscribe
+    }
+
+    this.midQueue.push(new Message(mid, cb, type, midGroup))
+    this._sendingProcess()
+  }
+
+  /**
      * @description This method makes an unsubscribe call, it uses [midGroup] as key for call.
      * If adding only [midGroup] the message will have a default body, for additional body settings,
      * add the [opts] object. The [cb] function is called in case of the error, sending the error as
@@ -728,449 +723,428 @@ class SessionControlClient extends EventEmitter {
      * @param {Object} [opts]
      * @param {Function} [cb]
      */
-    unsubscribe(midGroup, opts, cb) {
-        return maybePromisify(this, "_unsubscribe", midGroup, opts, cb);
-    }
+  unsubscribe(midGroup, opts, cb) {
+    return maybePromisify(this, '_unsubscribe', midGroup, opts, cb)
+  }
 
-    /**
+  /**
      * @private
      * @param {*} midGroup
      * @param {*} opts
      * @param {*} cb
      */
-    _unsubscribe(midGroup, opts, cb) {
-        debug("SessionControlClient _unsubscribe", midGroup, opts);
+  _unsubscribe(midGroup, opts, cb) {
+    debug('SessionControlClient _unsubscribe', midGroup, opts)
 
-        if (midGroupList[midGroup] === undefined) {
-            let err = new Error(`[Session Control Client] [Unsubscribe] invalid groupMid [${midGroup}]`);
-            debug("SessionControlClient _unsubscribe err_invalid_midGroup");
-            cb(err);
-            return;
-        }
-
-        if (cb === undefined) {
-            if (typeof opts === "function") {
-                cb = opts;
-                opts = {};
-            } else {
-                cb = () => {};
-            }
-        }
-
-        let mid = opts || {};
-
-        let type = SUBSCRIBE;
-
-        if (this.useGenerics && midGroupList[midGroup].generic) {
-
-            mid.mid = 9;
-            type = GENERIC;
-
-            let midNumber = mid.midNumber || midGroupList[midGroup].unsubscribe;
-            let revision = mid.revision || this._calcRevision(midNumber, SUBSCRIBE, midGroup, true);
-            let dataLength = mid.dataLength || 0;
-            let extraData = mid.extraData || "";
-
-            mid.payload = {
-                midNumber,
-                revision,
-                dataLength,
-                extraData
-            };
-
-        } else {
-            mid.payload = mid.payload || "";
-            mid.mid = midGroupList[midGroup].unsubscribe;
-        }
-
-        this.midQueue.push(new Message(mid, cb, type, midGroup));
-        this._sendingProcess();
+    if (midGroupList[midGroup] === undefined) {
+      const err = new Error(`[Session Control Client] [Unsubscribe] invalid groupMid [${midGroup}]`)
+      debug('SessionControlClient _unsubscribe err_invalid_midGroup')
+      cb(err)
+      return
     }
 
-    /**
+    if (cb === undefined) {
+      if (typeof opts === 'function') {
+        cb = opts
+        opts = {}
+      }
+      else {
+        cb = () => {}
+      }
+    }
+
+    const mid = opts || {}
+
+    let type = SUBSCRIBE
+
+    if (this.useGenerics && midGroupList[midGroup].generic) {
+      mid.mid = 9
+      type = GENERIC
+
+      const midNumber = mid.midNumber || midGroupList[midGroup].unsubscribe
+      const revision = mid.revision || this._calcRevision(midNumber, SUBSCRIBE, midGroup, true)
+      const dataLength = mid.dataLength || 0
+      const extraData = mid.extraData || ''
+
+      mid.payload = {
+        midNumber,
+        revision,
+        dataLength,
+        extraData,
+      }
+    }
+    else {
+      mid.payload = mid.payload || ''
+      mid.mid = midGroupList[midGroup].unsubscribe
+    }
+
+    this.midQueue.push(new Message(mid, cb, type, midGroup))
+    this._sendingProcess()
+  }
+
+  /**
      * @private
      */
-    _sendingProcess() {
-        debug("SessionControlClient _sendingProcess");
+  _sendingProcess() {
+    debug('SessionControlClient _sendingProcess')
 
-        if (this.onClose) {
-            if (this.midQueue.length > 0) {
-                let e = new Error("unavailable service");
+    if (this.onClose) {
+      if (this.midQueue.length > 0) {
+        const e = new Error('unavailable service')
 
-                this.midQueue.forEach(item => {
-                    process.nextTick(() => item.doCallback(e));
-                });
-            }
-            return;
-        }
-
-        if (this.inOperation || this.statusConnection !== CONN_CONNECTED) {
-            return;
-        }
-
-        if (this.midQueue.length > 0) {
-            this.inOperation = true;
-            this.midInProcess = this.midQueue.shift();
-            this._transmitMid();
-        }
+        this.midQueue.forEach((item) => {
+          process.nextTick(() => item.doCallback(e))
+        })
+      }
+      return
     }
 
-    /**
+    if (this.inOperation || this.statusConnection !== CONN_CONNECTED)
+      return
+
+    if (this.midQueue.length > 0) {
+      this.inOperation = true
+      this.midInProcess = this.midQueue.shift()
+      this._transmitMid()
+    }
+  }
+
+  /**
      * @private
      */
-    _transmitMid() {
-        debug("SessionControlClient _transmitMid", this.midInProcess);
+  _transmitMid() {
+    debug('SessionControlClient _transmitMid', this.midInProcess)
 
-        if (!this.changeRevision) {
-            this.midInProcess.midRevision = this._calcRevision();
-        } else {
-            if (!this.changeRevisionGeneric) {
-                this.midInProcess.midRevision = this._calcRevision();
-            } else {
-                this.midInProcess.genericRevision = this._calcRevision();
-            }
-        }
-
-        if (this.midInProcess.midRevision === 0) {
-            this.inOperation = false;
-            this._sendingProcess();
-            return;
-        }
-
-        clearTimeout(this.keepAliveTimer);
-
-        this.keepAliveTimer = setTimeout(() => this._sendKeepAlive(), this.keepAlive);
-
-        this.ll.write(this.midInProcess.mid);
+    if (!this.changeRevision) {
+      this.midInProcess.midRevision = this._calcRevision()
+    }
+    else {
+      if (!this.changeRevisionGeneric)
+        this.midInProcess.midRevision = this._calcRevision()
+      else
+        this.midInProcess.genericRevision = this._calcRevision()
     }
 
-    /**
+    if (this.midInProcess.midRevision === 0) {
+      this.inOperation = false
+      this._sendingProcess()
+      return
+    }
+
+    clearTimeout(this.keepAliveTimer)
+
+    this.keepAliveTimer = setTimeout(() => this._sendKeepAlive(), this.keepAlive)
+
+    this.ll.write(this.midInProcess.mid)
+  }
+
+  /**
      * @private
      * @param {*} mid
      * @param {*} type
      * @param {*} group
      * @param {*} local
      */
-    _calcRevision(mid, type, group, local) {
-        debug("SessionControlClient _calcRevision", mid, type, group, local);
+  _calcRevision(mid, type, group, local) {
+    debug('SessionControlClient _calcRevision', mid, type, group, local)
 
-        let revision = 0;
-        let midReference;
+    let revision = 0
+    let midReference
 
-        if (this.midInProcess !== undefined) {
-            mid = mid || this.midInProcess.midNumber;
-            type = type || this.midInProcess.type;
-            group = group || this.midInProcess.group;
-        }
-
-        if (this.changeRevision) {
-
-            if (!this.changeRevisionGeneric) {
-
-                if (this.midInProcess.baseMidRevision !== undefined || this.defaultRevisions[mid] !== undefined || this.autoRevision[mid].reference === 0) {
-                    let e = new Error(`[Session Control Client] invalid revision, MID[${mid}], Revision [${this.autoRevision[mid].value}]`);
-                    debug('SessionControlClient _calcRevision err_invalid_revision', this.midInProcess.baseMidRevision, this.defaultRevisions[mid], this.autoRevision[mid].reference);
-                    this.midInProcess.doCallback(e, null);
-                    return 0;
-                }
-
-            } else {
-
-                mid = this.midInProcess.baseGenericMid;
-
-                if (!this.autoRevision[mid] || this.autoRevision[mid].reference === 0) {
-                    let e = new Error(`[Session Control Client] invalid generic revision, MID[${mid}], Revision [${this.autoRevision[mid].value}]`);
-                    debug('SessionControlClient _calcRevision err_generic_revision', mid, this.autoRevision[mid]);
-                    this.midInProcess.doCallback(e, null);
-                    return 0;
-                }
-            }
-
-            if (type === SUBSCRIBE) {
-                midReference = this.autoRevision[mid].reference;
-            }
-
-            if (type === REQUEST) {
-                midReference = this.autoRevision[mid].reference;
-            }
-
-            let position = this.autoRevision[mid].position + 1;
-            revision = mids[midReference].revision()[position];
-
-            this.autoRevision[mid] = {
-                value: revision,
-                position: position,
-                reference: midReference
-            };
-
-            this.changeRevision = false;
-            this.changeRevisionGeneric = false;
-
-            return revision || 0;
-        }
-
-        if (local === true || this.midInProcess.baseMidRevision === undefined) {
-
-            if (this.defaultRevisions[mid] === undefined) {
-
-                if (this.autoRevision[mid] === undefined) {
-
-                    if (type === SUBSCRIBE) {
-                        midReference = midGroupList[group].data;
-                    }
-
-                    if (type === REQUEST) {
-                        midReference = midRequest[group].reply;
-                    }
-
-                    if (mids[midReference] === undefined) {
-                        revision = 1;
-                        midReference = 0;
-                    } else {
-                        revision = mids[midReference].revision()[0];
-                    }
-
-                    this.autoRevision[mid] = {
-                        value: revision,
-                        position: 0,
-                        reference: midReference
-                    };
-
-                } else {
-                    revision = this.autoRevision[mid].value;
-                }
-
-            } else {
-                revision = this.defaultRevisions[mid];
-            }
-
-        } else {
-            revision = this.midInProcess.midRevision;
-        }
-
-        return revision || 0;
+    if (this.midInProcess !== undefined) {
+      mid = mid || this.midInProcess.midNumber
+      type = type || this.midInProcess.type
+      group = group || this.midInProcess.group
     }
 
-    /**
+    if (this.changeRevision) {
+      if (!this.changeRevisionGeneric) {
+        if (this.midInProcess.baseMidRevision !== undefined || this.defaultRevisions[mid] !== undefined || this.autoRevision[mid].reference === 0) {
+          const e = new Error(`[Session Control Client] invalid revision, MID[${mid}], Revision [${this.autoRevision[mid].value}]`)
+          debug('SessionControlClient _calcRevision err_invalid_revision', this.midInProcess.baseMidRevision, this.defaultRevisions[mid], this.autoRevision[mid].reference)
+          this.midInProcess.doCallback(e, null)
+          return 0
+        }
+      }
+      else {
+        mid = this.midInProcess.baseGenericMid
+
+        if (!this.autoRevision[mid] || this.autoRevision[mid].reference === 0) {
+          const e = new Error(`[Session Control Client] invalid generic revision, MID[${mid}], Revision [${this.autoRevision[mid].value}]`)
+          debug('SessionControlClient _calcRevision err_generic_revision', mid, this.autoRevision[mid])
+          this.midInProcess.doCallback(e, null)
+          return 0
+        }
+      }
+
+      if (type === SUBSCRIBE)
+        midReference = this.autoRevision[mid].reference
+
+      if (type === REQUEST)
+        midReference = this.autoRevision[mid].reference
+
+      const position = this.autoRevision[mid].position + 1
+      revision = mids[midReference].revision()[position]
+
+      this.autoRevision[mid] = {
+        value: revision,
+        position,
+        reference: midReference,
+      }
+
+      this.changeRevision = false
+      this.changeRevisionGeneric = false
+
+      return revision || 0
+    }
+
+    if (local === true || this.midInProcess.baseMidRevision === undefined) {
+      if (this.defaultRevisions[mid] === undefined) {
+        if (this.autoRevision[mid] === undefined) {
+          if (type === SUBSCRIBE)
+            midReference = midGroupList[group].data
+
+          if (type === REQUEST)
+            midReference = midRequest[group].reply
+
+          if (mids[midReference] === undefined) {
+            revision = 1
+            midReference = 0
+          }
+          else {
+            revision = mids[midReference].revision()[0]
+          }
+
+          this.autoRevision[mid] = {
+            value: revision,
+            position: 0,
+            reference: midReference,
+          }
+        }
+        else {
+          revision = this.autoRevision[mid].value
+        }
+      }
+      else {
+        revision = this.defaultRevisions[mid]
+      }
+    }
+    else {
+      revision = this.midInProcess.midRevision
+    }
+
+    return revision || 0
+  }
+
+  /**
      * @private
      */
-    _sendKeepAlive() {
-        debug('SessionControlClient _sendKeepAlive');
+  _sendKeepAlive() {
+    debug('SessionControlClient _sendKeepAlive')
 
-        if (this.onClose) {
-            clearTimeout(this.keepAliveTimer);
-            return;
-        }
-
-        clearTimeout(this.keepAliveTimer);
-        this.keepAliveTimer = setTimeout(() => this._sendKeepAlive(), this.keepAlive);
-
-        this.request("keepAlive", (err) => {
-            if (err) {
-                debug('SessionControlClient _sendKeepAlive response-error', err);
-                clearTimeout(this.keepAliveTimer);
-                this.close();
-            }
-        });
+    if (this.onClose) {
+      clearTimeout(this.keepAliveTimer)
+      return
     }
 
-    /**
+    clearTimeout(this.keepAliveTimer)
+    this.keepAliveTimer = setTimeout(() => this._sendKeepAlive(), this.keepAlive)
+
+    this.request('keepAlive', (err) => {
+      if (err) {
+        debug('SessionControlClient _sendKeepAlive response-error', err)
+        clearTimeout(this.keepAliveTimer)
+        this.close()
+      }
+    })
+  }
+
+  /**
      * @private
      * @param {*} data
      */
-    _onDataLinkLayer(data) {
-        debug('SessionControlClient _onDataLinkLayer');
+  _onDataLinkLayer(data) {
+    debug('SessionControlClient _onDataLinkLayer')
 
-        // Call callback of Link Layer
-        this.ll.finishCycle();
+    // Call callback of Link Layer
+    this.ll.finishCycle()
 
-        // Send data to treatment
-        this._receiverData(data);
+    // Send data to treatment
+    this._receiverData(data)
+  }
+
+  _receiverData(data) {
+    debug('SessionControlClient _receiverData', data)
+
+    this.emit('data', data)
+
+    if (!this.midInProcess)
+      return
+
+    if (data.mid === 5) {
+      // Positive acknowledge
+      this.midInProcess.doCallback(null, data)
+      this.inOperation = false
+      this._sendingProcess()
+      return
     }
 
-    _receiverData(data) {
-        debug('SessionControlClient _receiverData', data);
+    if (data.mid === 4) {
+      // Reference MID
+      const midNumber = data.payload.midNumber
 
-        this.emit("data", data);
+      // Verify that the mid referenced in the response is equal to the mid sent.
+      if (midNumber !== this.midInProcess.midNumber) {
+        const err = new Error(`[Session Control Client] invalid acknowledge, expect MID[${this.midInProcess.midNumber}], received MID[${midNumber}]`)
+        debug('SessionControlClient _receiverData err-invalid_acknowledge', midNumber, this.midInProcess.midNumber)
+        this.midInProcess.doCallback(err)
+        this.inOperation = false
+        this._sendingProcess()
+        return
+      }
 
-        if (!this.midInProcess) {
-            return;
+      if ((midNumber === 6 || midNumber === 8 || midNumber === 9) && this.useGenerics) {
+        const errorCode = data.payload.errorCode
+
+        // Error 74: Subscribed MID Revision unsupported
+        // Error 76: Requested MID Revision unsupported
+        if (errorCode === 74 || errorCode === 76) {
+          this.changeRevision = true
+          this.changeRevisionGeneric = true
+          this._transmitMid()
+          return
         }
+      }
 
-        if (data.mid === 5) {
-            //Positive acknowledge
-            this.midInProcess.doCallback(null, data);
-            this.inOperation = false;
-            this._sendingProcess();
-            return;
-        }
+      // Error 97: MID revision unsupported
+      if (data.mid === 4 && data.payload.errorCode === 97) {
+        this.changeRevision = true
+        this._transmitMid()
+        return
+      }
 
-        if (data.mid === 4) {
-
-            // Reference MID
-            let midNumber = data.payload.midNumber;
-
-            // Verify that the mid referenced in the response is equal to the mid sent.
-            if (midNumber !== this.midInProcess.midNumber) {
-                let err = new Error(`[Session Control Client] invalid acknowledge, expect MID[${this.midInProcess.midNumber}], received MID[${midNumber}]`);
-                debug('SessionControlClient _receiverData err-invalid_acknowledge', midNumber, this.midInProcess.midNumber);
-                this.midInProcess.doCallback(err);
-                this.inOperation = false;
-                this._sendingProcess();
-                return;
-            }
-
-            if ((midNumber === 6 || midNumber === 8 || midNumber === 9) && this.useGenerics) {
-
-                let errorCode = data.payload.errorCode;
-
-                //Error 74: Subscribed MID Revision unsupported
-                //Error 76: Requested MID Revision unsupported
-                if (errorCode === 74 || errorCode === 76) {
-                    this.changeRevision = true;
-                    this.changeRevisionGeneric = true;
-                    this._transmitMid();
-                    return;
-                }
-            }
-
-            //Error 97: MID revision unsupported
-            if (data.mid === 4 && data.payload.errorCode === 97) {
-                this.changeRevision = true;
-                this._transmitMid();
-                return;
-            }
-
-            let errorCode = helpers.padLeft(data.payload.errorCode, 2);
-            let err = new Error(`[Session Control Client] negative acknowledge, MID[${midNumber}], Error[${constants.ERROR[errorCode]}]`);
-            debug('SessionControlClient _receiverData err_negative_acknowledge', midNumber, errorCode);
-            this.midInProcess.doCallback(err);
-            this.inOperation = false;
-            this._sendingProcess();
-            return;
-
-        }
-
-        if (this.midInProcess.type === MANUAL) {
-            this.midInProcess.doCallback(null, data);
-            return;
-        }
-
-        let receivedMid = data.mid.toString();
-        let dataGroup = midData[receivedMid];
-        let replyGroup = midReply[receivedMid];
-
-        if (dataGroup !== undefined) {
-
-            this.emit(dataGroup, data);
-
-            let obj = {
-                key: dataGroup,
-                data
-            };
-
-            this.emit("__SubscribeData__", obj);
-
-            if (!this.useLinkLayer) {
-                this.ll.write({
-                    mid: midGroupList[dataGroup].ack,
-                    isAck: true
-                });
-                return;
-            }
-        }
-
-        if (replyGroup !== undefined) {
-
-            if (replyGroup === this.midInProcess.group) {
-                this.midInProcess.doCallback(null, data);
-            } else {
-                let err = new Error(`[Session Control Client] invalid reply, expect MID[${this.midInProcess.group}], received [${replyGroup}]`);
-                debug('SessionControlClient _receiverData err_invalid_reply', replyGroup, this.midInProcess.group);
-                this.midInProcess.doCallback(err);
-            }
-
-            this.inOperation = false;
-            this._sendingProcess();
-            return;
-        }
+      const errorCode = helpers.padLeft(data.payload.errorCode, 2)
+      const err = new Error(`[Session Control Client] negative acknowledge, MID[${midNumber}], Error[${constants.ERROR[errorCode]}]`)
+      debug('SessionControlClient _receiverData err_negative_acknowledge', midNumber, errorCode)
+      this.midInProcess.doCallback(err)
+      this.inOperation = false
+      this._sendingProcess()
+      return
     }
 
-    /**
+    if (this.midInProcess.type === MANUAL) {
+      this.midInProcess.doCallback(null, data)
+      return
+    }
+
+    const receivedMid = data.mid.toString()
+    const dataGroup = midData[receivedMid]
+    const replyGroup = midReply[receivedMid]
+
+    if (dataGroup !== undefined) {
+      this.emit(dataGroup, data)
+
+      const obj = {
+        key: dataGroup,
+        data,
+      }
+
+      this.emit('__SubscribeData__', obj)
+
+      if (!this.useLinkLayer) {
+        this.ll.write({
+          mid: midGroupList[dataGroup].ack,
+          isAck: true,
+        })
+        return
+      }
+    }
+
+    if (replyGroup !== undefined) {
+      if (replyGroup === this.midInProcess.group) {
+        this.midInProcess.doCallback(null, data)
+      }
+      else {
+        const err = new Error(`[Session Control Client] invalid reply, expect MID[${this.midInProcess.group}], received [${replyGroup}]`)
+        debug('SessionControlClient _receiverData err_invalid_reply', replyGroup, this.midInProcess.group)
+        this.midInProcess.doCallback(err)
+      }
+
+      this.inOperation = false
+      this._sendingProcess()
+    }
+  }
+
+  /**
      * @private
      * @param {*} err
      */
-    _onErrorLinkLayer(err) {
-        debug('SessionControlClient _onErrorLinkLayer', err);
-        this.close(err);
-    }
+  _onErrorLinkLayer(err) {
+    debug('SessionControlClient _onErrorLinkLayer', err)
+    this.close(err)
+  }
 
-    /**
+  /**
      * @private
      * @param {*} err
      */
-    _onErrorSerializer(err) {
-        debug('SessionControlClient _onErrorSerializer', err);
+  _onErrorSerializer(err) {
+    debug('SessionControlClient _onErrorSerializer', err)
 
-        if (this.midInProcess) {
-            this.midInProcess.doCallback(err);
-        }
+    if (this.midInProcess)
+      this.midInProcess.doCallback(err)
 
-        this._sendKeepAlive();
-        this.inOperation = false;
-        this._sendingProcess();
-    }
-
+    this._sendKeepAlive()
+    this.inOperation = false
+    this._sendingProcess()
+  }
 }
 
 class Message {
+  constructor(mid, callback, type, group) {
+    debug('SessionControlClient new Message')
 
-    constructor(mid, callback, type, group) {
-        debug('SessionControlClient new Message');
+    this._mid = mid
+    this._callback = callback
+    this._type = type
+    this._group = group
+    this._baseMid = Object.assign({}, this._mid)
+  }
 
-        this._mid = mid;
-        this._callback = callback;
-        this._type = type;
-        this._group = group;
-        this._baseMid = Object.assign({}, this._mid);
+  get mid() {
+    return this._mid
+  }
+
+  get type() {
+    return this._type
+  }
+
+  get group() {
+    return this._group
+  }
+
+  get midNumber() {
+    return this._mid.mid
+  }
+
+  get midRevision() {
+    return this._mid.revision
+  }
+
+  set midRevision(revision) {
+    this._mid.revision = revision
+  }
+
+  get baseMidRevision() {
+    return this._baseMid.revision
+  }
+
+  doCallback(err, data) {
+    if (this._callback !== undefined) {
+      this._callback(err, data)
+      this._callback = undefined
     }
-
-    get mid() {
-        return this._mid;
-    }
-
-    get type() {
-        return this._type;
-    }
-
-    get group() {
-        return this._group;
-    }
-
-    get midNumber() {
-        return this._mid.mid;
-    }
-
-    get midRevision() {
-        return this._mid.revision;
-    }
-
-    get baseMidRevision() {
-        return this._baseMid.revision;
-    }
-
-    set midRevision(revision) {
-        this._mid.revision = revision;
-    }
-
-    doCallback(err, data) {
-
-        if (this._callback !== undefined) {
-            this._callback(err, data);
-            this._callback = undefined;
-        }
-    }
-
+  }
 }
 
-module.exports = SessionControlClient;
+module.exports = SessionControlClient
