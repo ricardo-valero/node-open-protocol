@@ -12,9 +12,7 @@
  * @param {number} MID9998.errorCode
  */
 
-const helpers = require('../helpers.js')
-const processParser = helpers.processParser
-const serializerField = helpers.serializerField
+import { processParser, serializerField } from '../helpers.js'
 
 function parser(msg, opts, cb) {
   const buffer = msg.payload

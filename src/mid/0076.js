@@ -16,11 +16,7 @@
  *
  */
 
-const helpers = require('../helpers.js')
-const processParser = helpers.processParser
-const processKey = helpers.processKey
-const serializerField = helpers.serializerField
-const serializerKey = helpers.serializerKey
+import { processKey, processParser, serializerField, serializerKey } from '../helpers.js'
 
 function parser(msg, opts, cb) {
   const buffer = msg.payload

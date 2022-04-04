@@ -14,9 +14,7 @@
  * @param {string} MID0008.extraData
  */
 
-const helpers = require('../helpers.js')
-const processParser = helpers.processParser
-const serializerField = helpers.serializerField
+import { processParser, serializerField } from '../helpers.js'
 
 function parser(msg, opts, cb) {
   const buffer = msg.payload
@@ -84,7 +82,7 @@ function revision() {
   return [1]
 }
 
-module.exports = {
+export default {
   parser,
   serializer,
   revision,

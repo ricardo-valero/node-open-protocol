@@ -23,11 +23,7 @@
  * @param {number} MID0015.startFinalAngle
  */
 
-const helpers = require('../helpers.js')
-const processParser = helpers.processParser
-const processKey = helpers.processKey
-const serializerKey = helpers.serializerKey
-const serializerField = helpers.serializerField
+import { processKey, processParser, serializerField, serializerKey } from '../helpers.js'
 
 function parser(msg, opts, cb) {
   const buffer = msg.payload
@@ -165,7 +161,7 @@ function revision() {
   return [2, 1]
 }
 
-module.exports = {
+export default {
   parser,
   serializer,
   revision,

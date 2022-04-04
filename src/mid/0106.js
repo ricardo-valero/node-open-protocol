@@ -3,9 +3,7 @@
   Copyright: (c) 2018-2020, Smart-Tech Controle e Automação
   GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 */
-const helpers = require('../helpers.js')
-const processParser = helpers.processParser
-const processKey = helpers.processKey
+import { processKey, processParser } from '../helpers.js'
 
 // keys are the same for revisions 1,2,3
 const revKeys = [

@@ -21,7 +21,7 @@ let midList
  * @param {boolean} [trimLeft=false] whether we should remove the left side of the string if it's bigger than the size
  * @returns {String}
  */
-function padLeft(n, size, base, elm, trimLeft) {
+export function padLeft(n, size, base, elm, trimLeft) {
   n = n.toString(base || 10)
   n = trimLeft ? n.substring(n.length - size) : n.substring(0, size)
   return new Array(size - n.length + 1).join(elm || '0').concat(n)
@@ -36,7 +36,7 @@ function padLeft(n, size, base, elm, trimLeft) {
  * @param {boolean} [trimLeft=false] whether we should remove the left side of the string if it's bigger than the size
  * @returns {String}
  */
-function padRight(n, size, base, elm, trimLeft) {
+export function padRight(n, size, base, elm, trimLeft) {
   n = n.toString(base || 10)
   n = trimLeft ? n.substring(n.length - size) : n.substring(0, size)
   return n.concat(new Array(size - n.length + 1).join(elm || '0'))
@@ -46,7 +46,7 @@ function padRight(n, size, base, elm, trimLeft) {
  * @description This method returns all implemented MIDs. The implemented MIDs must be saved in "/node-open-protocol/src/mid".
  * @returns {Array}
  */
-function getMids() {
+export function getMids() {
   if (midList)
     return midList
 
@@ -81,7 +81,7 @@ function getMids() {
  * @param {Function} cb
  * @returns {boolean}
  */
-function serializerField(message, buffer, parameter, type, length, position, cb) {
+export function serializerField(message, buffer, parameter, type, length, position, cb) {
   position.value -= length
 
   if (message.payload[parameter] === undefined) {
@@ -132,7 +132,7 @@ function serializerField(message, buffer, parameter, type, length, position, cb)
  * @param {Function} cb
  * @returns {boolean}
  */
-function serializerKey(message, buffer, key, length, position, cb) {
+export function serializerKey(message, buffer, key, length, position, cb) {
   position.value -= length
 
   if (isNaN(key)) {
@@ -162,7 +162,7 @@ function serializerKey(message, buffer, key, length, position, cb) {
  * @param {Function} cb
  * @returns {boolean} status process
  */
-function processParser(message, buffer, parameter, parameterType, parameterLength, position, cb) {
+export function processParser(message, buffer, parameter, parameterType, parameterLength, position, cb) {
   const length = parameterLength
   parameterLength = position.value + parameterLength
 
@@ -209,11 +209,11 @@ function processParser(message, buffer, parameter, parameterType, parameterLengt
  * @param {string} parameter
  * @param {number} key
  * @param {number} keyLength
- * @param {number} keyPosition
+ * @param {object} keyPosition {value: position}
  * @param {Function} cb
  * @returns {boolean}
  */
-function processKey(object, buffer, parameter, key, keyLength, keyPosition, cb) {
+export function processKey(object, buffer, parameter, key, keyLength, keyPosition, cb) {
   keyLength = keyPosition.value + keyLength
 
   const receiver = Number(buffer.toString(encoding, keyPosition.value, keyLength))
@@ -241,7 +241,7 @@ function processKey(object, buffer, parameter, key, keyLength, keyPosition, cb) 
  * @param {Function} cb
  * @returns {boolean}
  */
-function testNul(object, buffer, parameter, position, cb) {
+export function testNul(object, buffer, parameter, position, cb) {
   if (buffer[position.value] !== 0) {
     cb(new Error(`invalid value, mid: ${object.mid}, parameter: ${parameter}, payload: ${object.payload}`))
     return false
@@ -269,7 +269,7 @@ function testNul(object, buffer, parameter, position, cb) {
  * @param {Function} cb
  * @returns {boolean}
  */
-function processDataFields(message, buffer, parameter, count, position, cb) {
+export function processDataFields(message, buffer, parameter, count, position, cb) {
   let control = 0
 
   if (count > 0) {
@@ -359,7 +359,7 @@ function processDataFields(message, buffer, parameter, count, position, cb) {
  * @param {function} cb
  * @returns {boolean}
  */
-function processResolutionFields(message, buffer, parameter, count, position, cb) {
+export function processResolutionFields(message, buffer, parameter, count, position, cb) {
   let control = 0
 
   if (count > 0) {
@@ -429,17 +429,4 @@ function processResolutionFields(message, buffer, parameter, count, position, cb
     }
   }
   return true
-}
-
-export {
-  getMids,
-  testNul,
-  padLeft,
-  padRight,
-  processKey,
-  processParser,
-  processDataFields,
-  processResolutionFields,
-  serializerField,
-  serializerKey,
 }
