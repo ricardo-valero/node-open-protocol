@@ -4,16 +4,16 @@
   GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 */
 
-const util = require('util')
-const { Duplex } = require('stream')
+import { debuglog } from 'util'
+import { Duplex } from 'stream'
 
-const OpenProtocolParser = require('./openProtocolParser')
-const OpenProtocolSerializer = require('./openProtocolSerializer')
-const MIDParser = require('./MIDParser')
-const MIDSerializer = require('./MIDSerializer')
-const constants = require('./constants.json')
+import OpenProtocolParser from './openProtocolParser'
+import OpenProtocolSerializer from './openProtocolSerializer'
+import MIDParser from './MIDParser'
+import MIDSerializer from './MIDSerializer'
+import { ERROR_LINKLAYER } from './constants.json'
 
-const debug = util.debuglog('open-protocol')
+const debug = debuglog('open-protocol')
 
 const POSITIVE_ACK = 9997
 const NEGATIVE_ACK = 9998
@@ -205,7 +205,7 @@ class LinkLayer extends Duplex {
         if (this.linkLayerActive) {
           this._sendLinkLayer(NEGATIVE_ACK, data.sequenceNumber, {
             midNumber: data.mid,
-            errorCode: constants.ERROR_LINKLAYER.INCONSISTENCY_MESSAGE_NUMBER,
+            errorCode: ERROR_LINKLAYER.INCONSISTENCY_MESSAGE_NUMBER,
           })
         }
 
@@ -257,7 +257,7 @@ class LinkLayer extends Duplex {
             if (data.sequenceNumber !== (this.sequenceNumberPartner + 1)) {
               this._sendLinkLayer(NEGATIVE_ACK, data.sequenceNumber, {
                 midNumber: data.mid,
-                errorCode: constants.ERROR_LINKLAYER.INVALID_SEQUENCE_NUMBER,
+                errorCode: ERROR_LINKLAYER.INVALID_SEQUENCE_NUMBER,
               })
 
               this.emit('error', new Error(`[LinkLayer] sequence number invalid, MID[${data.mid}]`))
@@ -480,4 +480,4 @@ class LinkLayer extends Duplex {
   }
 }
 
-module.exports = LinkLayer
+export default LinkLayer

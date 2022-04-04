@@ -4,9 +4,10 @@
   GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 */
 
-const fs = require('fs')
-const path = require('path')
-const codes = require('./constants.json')
+import fs from 'fs'
+import path from 'path'
+import codes from './constants.json'
+
 const encoding = codes.defaultEncoder
 
 let midList
@@ -15,7 +16,7 @@ let midList
  * @description Converts a string or a number to a string with a determined @param size length.
  * @param {number|String} n the element to be padded
  * @param {number} size the desired length of the string
- * @param {number} base the base used to convert @param n to a string when it's a number
+ * @param {number} [base=10] the base used to convert @param n to a string when it's a number
  * @param {String} [elm='0'] the character used to fill the empty positions
  * @param {boolean} [trimLeft=false] whether we should remove the left side of the string if it's bigger than the size
  * @returns {String}
@@ -30,7 +31,7 @@ function padLeft(n, size, base, elm, trimLeft) {
  * @description Converts a string or a number to a string with a determined @param size length.
  * @param {number|String} n the element to be padded
  * @param {number} size the desired length of the string
- * @param {number} base the base used to convert @param n to a string when it's a number
+ * @param {number} [base=10] the base used to convert @param n to a string when it's a number
  * @param {String} [elm='0'] the character used to fill the empty positions
  * @param {boolean} [trimLeft=false] whether we should remove the left side of the string if it's bigger than the size
  * @returns {String}
@@ -72,7 +73,7 @@ function getMids() {
  * The return of this function is a boolean, true: the process without errors or false: the process with an error.
  *
  * @param {object} message
- * @param {buffer} buffer
+ * @param {Buffer} buffer
  * @param {string} parameter
  * @param {string} type
  * @param {number} length
@@ -124,7 +125,7 @@ function serializerField(message, buffer, parameter, type, length, position, cb)
  * The return of this function is boolean, true: the process without errors or false: the process with an error.
  *
  * @param {object} message
- * @param {buffer} buffer
+ * @param {Buffer} buffer
  * @param {number} key
  * @param {number} length
  * @param {object} position
@@ -153,7 +154,7 @@ function serializerKey(message, buffer, key, length, position, cb) {
  * The return of this function is boolean, true: the process without errors or false: the process with an error.
  *
  * @param {object} message Object in use for update
- * @param {buffer} buffer Buffer with content for extracting information
+ * @param {Buffer} buffer Buffer with content for extracting information
  * @param {string} parameter Name of parameter extracted
  * @param {string} parameterType Type of information extracted "string" | "rawString" | "number"
  * @param {number} parameterLength Size of information extracted
@@ -204,7 +205,7 @@ function processParser(message, buffer, parameter, parameterType, parameterLengt
  * The [cb] function is called in cases of error, sending the error as parameter.
  *
  * @param {object} object
- * @param {buffer} buffer
+ * @param {Buffer} buffer
  * @param {string} parameter
  * @param {number} key
  * @param {number} keyLength
@@ -234,7 +235,7 @@ function processKey(object, buffer, parameter, key, keyLength, keyPosition, cb) 
  * The [cb] function is called in cases of error, sending the error as parameter.
  *
  * @param {object} object
- * @param {buffer} buffer
+ * @param {Buffer} buffer
  * @param {string} parameter
  * @param {object} position
  * @param {Function} cb
@@ -261,7 +262,7 @@ function testNul(object, buffer, parameter, position, cb) {
  * @see Specification OpenProtocol_Specification_R_2_8_0_9836 4415 01.pdf Page 34
  *
  * @param {object} message
- * @param {buffer} buffer
+ * @param {Buffer} buffer
  * @param {string} parameter
  * @param {number} count
  * @param {object} position
@@ -351,7 +352,7 @@ function processDataFields(message, buffer, parameter, count, position, cb) {
  * @see Specification OpenProtocol_Specification_R_2_8_0_9836 4415 01.pdf Page 260
  *
  * @param {object} message
- * @param {buffer} buffer
+ * @param {Buffer} buffer
  * @param {string} parameter
  * @param {number} count
  * @param {object} position
@@ -430,7 +431,7 @@ function processResolutionFields(message, buffer, parameter, count, position, cb
   return true
 }
 
-module.exports = {
+export {
   getMids,
   testNul,
   padLeft,

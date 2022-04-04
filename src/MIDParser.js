@@ -4,16 +4,15 @@
   GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 */
 
-const util = require('util')
-const { Transform } = require('stream')
+import { debuglog } from 'util'
+import { Transform } from 'stream'
+import { getMids } from './helpers.js'
+import { defaultEncoder } from './constants.json'
 
-const helpers = require('./helpers.js')
-const mids = helpers.getMids()
+const mids = getMids()
+const encodingOP = defaultEncoder
 
-const constants = require('./constants.json')
-const encodingOP = constants.defaultEncoder
-
-const debug = util.debuglog('open-protocol')
+const debug = debuglog('open-protocol')
 
 class MIDParser extends Transform {
   /**
@@ -69,4 +68,4 @@ class MIDParser extends Transform {
   }
 }
 
-module.exports = MIDParser
+export default MIDParser

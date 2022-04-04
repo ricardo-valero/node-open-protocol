@@ -4,21 +4,20 @@
   GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 */
 
-const util = require('util')
+import { debuglog } from 'util'
+import EventEmitter from 'events'
+import LinkLayer from '../src/linkLayer.js'
+import { getMids, padLeft } from './helpers.js'
+import midGroupList from './midGroups.json'
+import midData from './midData.json'
+import { ERROR } from './constants.json'
+import midRequest from './midRequest.json'
+import midCommand from './midCommand.json'
+import midReply from './midReply.json'
 
-const EventEmitter = require('events')
-const LinkLayer = require('../src/linkLayer.js')
-const helpers = require('./helpers.js')
-const midGroupList = require('./midGroups.json')
-const midData = require('./midData.json')
-const constants = require('./constants.json')
-const midRequest = require('./midRequest.json')
-const midCommand = require('./midCommand.json')
-const midReply = require('./midReply.json')
+const mids = getMids()
 
-const mids = helpers.getMids()
-
-const debug = util.debuglog('open-protocol')
+const debug = debuglog('open-protocol')
 
 const SUBSCRIBE = 'subscribe'
 const COMMAND = 'command'
@@ -310,8 +309,8 @@ class SessionControlClient extends EventEmitter {
           sendMidOne()
         }
         else {
-          const errorCode = helpers.padLeft(data.payload.errorCode, 2)
-          const e = new Error(`[Session Control Client] [Connect] negative acknowledge, MID[${data.payload.midNumber}], Error [${constants.ERROR[errorCode]}]`)
+          const errorCode = padLeft(data.payload.errorCode, 2)
+          const e = new Error(`[Session Control Client] [Connect] negative acknowledge, MID[${data.payload.midNumber}], Error [${ERROR[errorCode]}]`)
           debug('SessionControlClient connect err_negative_acknowledge', data.payload.errorCode, this.defaultRevisions['1'])
           this.emit('error', e)
         }
@@ -1023,8 +1022,8 @@ class SessionControlClient extends EventEmitter {
         return
       }
 
-      const errorCode = helpers.padLeft(data.payload.errorCode, 2)
-      const err = new Error(`[Session Control Client] negative acknowledge, MID[${midNumber}], Error[${constants.ERROR[errorCode]}]`)
+      const errorCode = padLeft(data.payload.errorCode, 2)
+      const err = new Error(`[Session Control Client] negative acknowledge, MID[${midNumber}], Error[${ERROR[errorCode]}]`)
       debug('SessionControlClient _receiverData err_negative_acknowledge', midNumber, errorCode)
       this.midInProcess.doCallback(err)
       this.inOperation = false
@@ -1147,4 +1146,4 @@ class Message {
   }
 }
 
-module.exports = SessionControlClient
+export default SessionControlClient

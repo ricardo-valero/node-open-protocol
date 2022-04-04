@@ -4,14 +4,13 @@
   GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 */
 
-const util = require('util')
-const { Transform } = require('stream')
+import { debuglog } from 'util'
+import { Transform } from 'stream'
+import { ERROR_LINKLAYER, defaultEncoder } from './constants.json'
 
-const constants = require('./constants.json')
+const encodingOP = defaultEncoder
 
-const encodingOP = constants.defaultEncoder
-
-const debug = util.debuglog('open-protocol')
+const debug = debuglog('open-protocol')
 
 class OpenProtocolParser extends Transform {
   /**
@@ -58,7 +57,7 @@ class OpenProtocolParser extends Transform {
 
       if (isNaN(length) || length < 1 || length > 9999) {
         const e = new Error(`Invalid length [${length}]`)
-        e.errno = constants.ERROR_LINKLAYER.INVALID_LENGTH
+        e.errno = ERROR_LINKLAYER.INVALID_LENGTH
 
         cb(e)
 
@@ -74,7 +73,7 @@ class OpenProtocolParser extends Transform {
 
       if (chunk[ptr + length] !== 0) {
         const e = new Error(`Invalid message [${chunk.toString()}]`)
-        e.errno = constants.ERROR_LINKLAYER.INVALID_LENGTH
+        e.errno = ERROR_LINKLAYER.INVALID_LENGTH
         cb(e)
         debug('OpenProtocolParser _transform err-message:', ptr, chunk)
         return
@@ -102,7 +101,7 @@ class OpenProtocolParser extends Transform {
 
       if (isNaN(obj.revision) || obj.revision < 0 || obj.revision > 999) {
         const e = new Error(`Invalid revision [${revision}]`)
-        e.errno = constants.ERROR_LINKLAYER.INVALID_REVISION
+        e.errno = ERROR_LINKLAYER.INVALID_REVISION
         e.obj = obj
         cb(e)
         debug('OpenProtocolParser _transform err-revision:', ptr, chunk)
@@ -229,4 +228,4 @@ class OpenProtocolParser extends Transform {
   }
 }
 
-module.exports = OpenProtocolParser
+export default OpenProtocolParser

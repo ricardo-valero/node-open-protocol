@@ -4,13 +4,13 @@
   GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 */
 
-const util = require('util')
-const { Transform } = require('stream')
+import { debuglog } from 'util'
+import { Transform } from 'stream'
+import { getMids } from './helpers.js'
 
-const helpers = require('./helpers.js')
-const mids = helpers.getMids()
+const mids = getMids()
 
-const debug = util.debuglog('open-protocol')
+const debug = debuglog('open-protocol')
 
 class MIDSerializer extends Transform {
   /**
@@ -67,4 +67,4 @@ class MIDSerializer extends Transform {
   }
 }
 
-module.exports = MIDSerializer
+export default MIDSerializer

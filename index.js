@@ -4,17 +4,17 @@
   GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 */
 
-const net = require('net')
-const OpenProtocolParser = require('./src/openProtocolParser.js')
-const OpenProtocalSerializer = require('./src/openProtocolSerializer.js')
-const MIDParser = require('./src/MIDParser.js')
-const MIDSerializer = require('./src/MIDSerializer.js')
-const helpers = require('./src/helpers.js')
-const SessionControlClient = require('./src/sessionControlClient.js')
+import { createConnection } from 'net'
+import OpenProtocolParser from './src/openProtocolParser.js'
+import OpenProtocalSerializer from './src/openProtocolSerializer.js'
+import MIDParser from './src/MIDParser.js'
+import MIDSerializer from './src/MIDSerializer.js'
+import * as helpers from './src/helpers.js'
+import SessionControlClient from './src/sessionControlClient.js'
 
-const midGroups = require('./src/midGroups.json')
-const midCommand = require('./src/midCommand.json')
-const midrequest = require('./src/midRequest.json')
+import midGroups from './src/midGroups.json'
+import midCommand from './src/midCommand.json'
+import midrequest from './src/midRequest.json'
 
 function createClient(port, host, opts, connectionListener) {
   if (connectionListener === undefined) {
@@ -32,7 +32,7 @@ function createClient(port, host, opts, connectionListener) {
 
   const client = new SessionControlClient(opts)
 
-  const socket = net.createConnection(port, host, () => {
+  const socket = createConnection(port, host, () => {
     socket.setTimeout(0)
     client.connect(connectionListener)
   })
@@ -54,7 +54,7 @@ function createClient(port, host, opts, connectionListener) {
   return client
 }
 
-module.exports = {
+export default {
   constants: {
     subscribes: midGroups,
     commands: midCommand,
